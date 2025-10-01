@@ -1,3 +1,5 @@
+const { type } = require('os');
+
 const masters = {
     mixingRatios: [{ label: 'M5', value: 'M5', meta: "1 Cement, 5 Sand, 10 Coarse aggregate",  id:1 }, { label: 'M7.5', value: 'M7.5', meta: "1 Cement, 4 Sand, 8 Coarse aggregate", id:2 }], // others
     reinforcementWeights: [{ label: '6', value: 0.22, id:1 }, { label: '8', value: 0.395, id:2 }],
@@ -21,9 +23,9 @@ const masters = {
 
 const measurements = {
     LOT: {
-        name: 'LOT',
         UOM: 'LOT',
-        value: ""
+        value: "",  
+        type: "LOT"
     },
     CUM: {
         name: 'L*B*H',
@@ -33,6 +35,7 @@ const measurements = {
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' }, { type: 'label', value: 'Breadth' }, { type: 'label', value: 'height' }, { type: 'label', value: 'total (cum)' }],
             [{ type: 'text', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', value: 'COMPUTE', formula: "*" }]
         ],
+        type: "table",
         finalTotal: "total"
     },
     CUM_MIXING: { 
@@ -43,7 +46,8 @@ const measurements = {
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' }, { type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'Height (m)' }, { type: 'label', value: 'Total (cum)' }],
             [{ type: 'dropdown', value: '', options: masters.mixingRatios }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', value: 'COMPUTE', formula: "*" }]
         ],
-        finalTotal: "name"
+        finalTotal: "name",
+        type: "table"
     },
 
     KgsDia: {
@@ -54,7 +58,8 @@ const measurements = {
             [{ type: 'label', value: 'Dia' }, { type: 'label', value: 'Length (m)' }, { type: 'label', value: 'total (kgs)' }],
             [{ type: 'dropdown', value: '', options: masters.reinforcementWeights }, { type: 'number', value: '' },  { type: 'label', value: 'COMPUTE', formula: "*" }]
         ],
-        finalTotal: "total"
+        finalTotal: "total",
+        type: "table"
     },
     SqM: {
         name: 'l*b',
@@ -64,7 +69,8 @@ const measurements = {
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' ,},{ type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'total (kgs)' }],
             [{ type: 'text', value: '', }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', value: 'COMPUTE', formula: "*" }]
         ],
-        finalTotal: "total"
+        finalTotal: "total",
+        type: "table"
     },
     SqM_MASONRY: {
         name: 'l*b',
@@ -74,7 +80,8 @@ const measurements = {
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' ,},{ type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'total (kgs)' }],
             [{ type: 'dropdown', value: '', options: masters.masionry }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', value: 'COMPUTE', formula: "*" }]
         ],
-        finalTotal: "total"
+        finalTotal: "total",
+        type: "table"
     },
     RM_PLUM: {
         name: 'Length',
@@ -84,7 +91,8 @@ const measurements = {
             [{ type: 'label', value: 'Diameter' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.pvcPlumbing }, { type: 'number', value: '' }]
         ],
-        finalTotal: false
+        finalTotal: false,
+        type: "table"
     },
     RM_CPVC: {
         name: 'Length',
@@ -94,7 +102,8 @@ const measurements = {
             [{ type: 'label', value: 'Diameter' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.cpvcPlumbing }, { type: 'number', value: '' }]
         ],
-        finalTotal: false
+        finalTotal: false,
+        type: "table"
     },
     RM_CONDUIT: {
         name: 'Length',
@@ -104,7 +113,8 @@ const measurements = {
             [{ type: 'label', value: 'Size' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.conduitSizing }, { type: 'number', value: '' }]
         ],
-        finalTotal: "name"
+        finalTotal: "name",
+        type: "table"
     },
     SWITCH_COUNT: {
         name: 'Switch Count',
@@ -114,7 +124,8 @@ const measurements = {
             [{ type: 'label', value: 'Size' }, { type: 'label', value: 'Nos' }],
             [{ type: 'dropdown', value: '',options: masters.switchBoxes }, { type: 'number', value: '' }]
         ],
-        finalTotal: "name"
+        finalTotal: "name",
+        type: "table"
     },
     AC_CONDUIT:{
         name: 'AC Conduit',
@@ -124,7 +135,8 @@ const measurements = {
             [{ type: 'label', value: 'Size' }, { type: 'label', value: 'Nos' }],
             [{ type: 'dropdown', value: '',options: masters.acCopperDia }, { type: 'number', value: '' }]
         ],
-        finalTotal: "name"
+        finalTotal: "name",
+        type: "table"
     },
     EARTHING: {
         name: 'Earthing values',
@@ -134,7 +146,8 @@ const measurements = {
             [{ type: 'label', value: 'type' }, { type: 'label', value: 'location' },  { type: 'label', value: 'value' }],
             [{ type: 'text', value: ''}, { type: 'text', value: '' }, { type: 'number', value: '' }]
         ],
-        finalTotal: false
+        finalTotal: false,
+        type: "table"
     },
     SAME_AS_PO: "SAME_AS_PO",
     STRUCTURAL_STEEL: {
@@ -145,7 +158,8 @@ const measurements = {
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Meters' }],
             [{ type: 'dropdown', value: '',options: masters.structuralSteel }, { type: 'number', value: '' }]
         ],
-        finalTotal: "total"
+        finalTotal: "total",
+        type: "table"
     },
     RM_ELECTRICAL: {
         name: 'Length',
@@ -155,7 +169,8 @@ const measurements = {
             [{ type: 'label', value: 'Diameter' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.electricalCabling }, { type: 'number', value: '' }]
         ],
-        finalTotal: false
+        finalTotal: false,
+        type: "table"
     },
     RM_CCTV: {
         name: 'Length',
@@ -165,7 +180,8 @@ const measurements = {
             [{ type: 'label', value: 'Diameter' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.ccTvCabling }, { type: 'number', value: '' }]
         ],
-        finalTotal: false
+        finalTotal: false,
+        type: "table"
     },
     FALSE_CEILING_SUPPORT:{
         name: 'False Ceiling Support',
@@ -175,7 +191,8 @@ const measurements = {
             [{ type: 'label', value: 'Support' }, { type: 'label', value: 'Quantity' }],
             [{ type: 'text', value: '' }, { type: 'number', value: '' }]
         ],
-        finalTotal: "name"
+        finalTotal: "name",
+        type: "table"
     },
     FALSE_CEILING:{
         name: 'False Ceiling',
@@ -185,7 +202,8 @@ const measurements = {
             [{ type: 'label', value: 'Type' }, { type: 'label', value: 'Quantity' }],
             [{ type: 'dropdown', value: '', options: masters.falseCeilingTypes }, { type: 'number', value: '' }]
         ],
-        finalTotal: "name"
+        finalTotal: "name",
+        type: "table"
     },
     FRAMING:{
         name: 'Framing',
@@ -195,7 +213,8 @@ const measurements = {
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'length' }, { type: 'label', value: 'Breadth' }, {type:'label', value:'Nos'}],
             [{ type: 'text', value: ''}, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }]
         ],
-        finalTotal: "name"
+        finalTotal: "name",
+        type: "table"
     },
     PAINT_INTERNAL:{
         name: 'Internal Paint',
@@ -205,7 +224,8 @@ const measurements = {
             [{ type: 'label', value: 'Type' }, { type: 'label', value: 'Quantity' }],
             [{ type: 'dropdown', value: '', options: masters.internalPaint }, { type: 'number', value: '' }]
         ],
-        finalTotal: "name"
+        finalTotal: "name",
+        type: "table"
     },
     ELECTRICAL_FITTINGS: {
         name: 'Electrical Fittings',
@@ -215,7 +235,8 @@ const measurements = {
             [{ type: 'label', value: 'item name' }, { type: 'label', value: 'location' },  { type: 'label', value: 'Nos' }],
             [{ type: 'text', value: ''}, { type: 'text', value: '' }, { type: 'number', value: '' }]
         ],
-        finalTotal: "total"
+        finalTotal: "total",
+        type: "table"
     },
 }
 const leakTestTable = [
@@ -1365,7 +1386,7 @@ const createActivityData = () => {
         const data = {
             ...acitivity[i],
             // ensure poValue is always an empty string on output
-            checkLists: acitivity[i].checkLists?.map(ele => ({ ...ele.type, name: ele.name, options: ele?.options, isRequired: ele.isRequired!=null ? ele.isRequired : true, value : ele.value ? ele.value : ele.type.value })),
+            checkLists: acitivity[i].checkLists?.map((ele, id) => ({ ...ele.type, name: ele.name, options: ele?.options, isRequired: ele.isRequired!=null ? ele.isRequired : true, value : ele.value ? ele.value : ele.type.value, id:id+1 })),
             id: i
         }
         result.push(data)
@@ -1374,10 +1395,16 @@ const createActivityData = () => {
     const fs = require('fs')
     const path = require('path')
     // replace poValue with poValue for each activity if present
+
+    const projectJson = {
+        projectId: "12345",
+        projectName: "Sample Project",
+        activities: result,       
+    }
    
 
     const outPath = path.join(__dirname, 'activity.json')
-    fs.writeFileSync(outPath, JSON.stringify(result, null, 4), 'utf8')
+    fs.writeFileSync(outPath, JSON.stringify(projectJson, null, 4), 'utf8')
     console.log('Wrote', outPath)
 }
 
