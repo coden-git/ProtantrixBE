@@ -1,0 +1,162 @@
+openapi: 3.1.0
+info:
+  title: ProtantrixBE API
+  version: 1.0.0
+  description: API for managing Protantrix JSON activity schema versions
+servers:
+  - url: /api/v1
+paths:
+  /create-schema:
+    get:
+      summary: Generate activity JSON and save as a new versioned json_schema (invoked via GET)
+      tags:
+        - schema
+      responses:
+        '200':
+          description: Successfully created a new json_schema version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  saved:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      version:
+                        type: integer
+                      shema:
+                        type: object
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: string
+    /projects/create:
+      post:
+        summary: Create a new project using the latest json_schema as activities
+        tags:
+          - project
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectCreateRequest'
+        responses:
+          '201':
+            description: Project created
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ProjectCreateResponse'
+          '400':
+            description: Validation error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    ok:
+                      type: boolean
+                    error:
+                      type: string
+          '500':
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    ok:
+                      type: boolean
+                    error:
+                      type: string
+components:
+  schemas:
+    CreateSchemaResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        saved:
+          type: object
+          properties:
+            _id:
+              type: string
+            version:
+              type: integer
+            shema:
+              type: object
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    ProjectCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+            - READY
+            - IN_PROGRESS
+            - COMPLETED
+            - DELETED
+      required:
+        - name
+
+    ProjectCreateResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        project:
+          type: object
+          properties:
+            _id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+              nullable: true
+            status:
+              type: string
+            docs:
+              type: array
+              items:
+                type: string
+            activities:
+              type: array
+              items:
+                type: object
+            json_schema_version:
+              type: integer
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
