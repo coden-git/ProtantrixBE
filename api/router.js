@@ -4,6 +4,8 @@ const router = express.Router();
 // Controller
 const schemaController = require('./config/schema.contoller');
 const projectController = require('./project/project.controller');
+const uploadFormController = require('./project/uploadForm.controller');
+const downloadController = require('./project/download.controller');
 const projectValidator = require('./project/project.validator');
 const middlewares = require('../middlewares/middleware')
 const openapiBuilder = require('./openapi.builder');
@@ -61,6 +63,54 @@ openapiBuilder.attachDoc('/projects/{id}/activities/{activityId}', 'put', {
 	],
 	responses: { '200': { description: 'Activity replaced' }, '404': { description: 'Not found' }, '500': { description: 'Server error' } },
 });
+
+
+// POST /project/upload-form - accept multipart/form-data (field 'file') and upload to S3
+router.post('/project/upload-form', uploadFormController.singleUpload, uploadFormController.handleUploadForm);
+
+openapiBuilder.attachDoc('/project/upload-form', 'post', {
+	summary: 'Upload a single file (multipart/form-data) to S3',
+	tags: ['project'],
+	requestBody: {
+		required: true,
+		content: {
+			'multipart/form-data': {
+				schema: {
+					type: 'object',
+					properties: {
+						file: { type: 'string', format: 'binary' },
+						path: { type: 'string', description: 'Optional destination path/prefix inside the bucket' },
+					},
+					required: ['file'],
+				},
+			},
+		},
+	},
+	responses: {
+		'200': { description: 'Upload result' },
+		'400': { description: 'Bad request (missing file)' },
+		'500': { description: 'Server error' },
+	},
+});
+
+// GET /project/download/:path - return a presigned URL for a file
+router.get('/project/download/:path', downloadController.getPresignedDownload);
+
+openapiBuilder.attachDoc('/project/download/{path}', 'get', {
+	summary: 'Get a presigned S3 GET URL for a stored file. Path must be URL-encoded',
+	tags: ['project'],
+	parameters: [
+		{ name: 'path', in: 'path', required: true, schema: { type: 'string' }, description: 'URL-encoded path/key relative to ENV prefix, e.g. activities%2Fmyfile.jpg' },
+		{ name: 'expires', in: 'query', required: false, schema: { type: 'integer', default: 1800 }, description: 'Expiry in seconds for the presigned URL' },
+	],
+	responses: {
+		'200': { description: 'Presigned URL returned', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' }, url: { type: 'string' } } } } } },
+		'400': { description: 'Bad request (missing path)' },
+		'500': { description: 'Server error' },
+	},
+});
+
+
 // attach OpenAPI doc for POST /projects/create (request/response schemas added to components)
 openapiBuilder.addSchema('ProjectCreateRequest', projectValidator.createProjectSchema.describe ? projectValidator.createProjectSchema.describe() : { type: 'object' });
 openapiBuilder.addSchema('ProjectCreateResponse', {
