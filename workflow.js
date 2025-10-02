@@ -7,7 +7,7 @@ const masters = {
     pvcPlumbingPressure: [{ label: '1/8', value: 1230, id:1 }, { label: '1/4', value: 1130,id:2 }], // others //TODO
     pvcPlumbing: [{ label: '1/8', value: '1/8', id:1 }, { label: '1/4', value: '1/4',id:2 }, { label: '3/8', value: '3/8',id:3 }, { label: '1/2', value: '1/2',id:4 }], // others //TODO
     cpvcPlumbing: [{ label: '1/2 - 2 Class 1', value: '1/2 - 2 Class 1', id:1 }, { label: '1/2 - 2 Class 2', value: '1/2 - 2 Class 2', id:2 }], // others //TODO
-    acCopperDia: [{ label: '1/8', value: 3.175, id:1 }, { label: '1/4', value: 6.35,id:2 }], // others //TODO
+    acCopperDia: [{ label: '1/8 3.175', value: '1/8 3.175', id:1 }, { label: '1/4 6.35', value: '1/4 6.35',id:2 }], // others //TODO
     conduitSizing: [{label:'20', value:20}, {label:'25', value:25}],
     switchBoxes: [{label:'1 module plate', value:'1 module plate'}, {label:'2 module plate', value:'2 module plate'}],
     leakTestDays: 10,
@@ -144,7 +144,7 @@ const measurements = {
         UOM: 'RM',
         isMulti: true,
         data: [
-            [{ type: 'label', value: 'Size' }, { type: 'label', value: 'Nos' }],
+            [{ type: 'label', value: 'Size' }, { type: 'label', value: 'Meter' }],
             [{ type: 'dropdown', value: '',options: masters.acCopperDia }, { type: 'number', value: '' }]
         ],
         finalTotal: "name",
@@ -1010,7 +1010,7 @@ const createActivityData = () => {
             poTrigger: "id",
             name: "Washroom Drain Plumbing",
             checkLists: [
-                { name: "Slope test", type: checkList.dateRange },
+                { name: "Slope test", type: checkList.checkBox },
                 { name: "Traps", type: checkList.checkBox },
                 { name: "Leak test", type: checkList.table, value: leakTestTable },
 
@@ -1076,13 +1076,23 @@ const createActivityData = () => {
             measurement:  measurements.RM_CCTV
         },
         {
+            poValue: [{label:'Ceiling support', value:100}],
+            poTrigger: "value",
+            name: "Ceiling Supports",
+            checkLists: [
+                { name: "Dimension check", type: checkList.checkBox},
+                { name: "End Connection Check", type: checkList.checkBox},
+              ],
+            measurement:  measurements.FALSE_CEILING_SUPPORT
+        },
+        {
             poValue: '',
             name: "False ceiling grid laying",
             checkLists: [
                 { name: "Level check", type: checkList.checkBox},
                 { name: "Supporting", type: checkList.checkBox},
               ],
-            measurement:  measurements.FALSE_CEILING_SUPPORT
+            measurement:  measurements.LOT
         },
         {
             poValue: masters.falseCeilingTypes.map(e=>({ label: e.value, value: 100, id: e.id })),
@@ -1319,7 +1329,7 @@ const createActivityData = () => {
             measurement:  measurements.LOT
         },
         {
-            poValue: masters.electricalCabling.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.internalPaint.map(e=>({ label: e.value, value: 100, id: e.id })),
             name:'Internal Paint application',
             poTrigger: "id",
             checkLists: [
@@ -1338,7 +1348,7 @@ const createActivityData = () => {
                 { name: "Surface finish", type: checkList.checkBox},
                 { name: "Protection", type: checkList.checkBox},
               ],
-            measurement:  measurements.SqM
+            measurement:  {...measurements.LOT, UOM:'SqM'}
         },
         {
             poValue: [{label:"Structural paint application", value:100}],
