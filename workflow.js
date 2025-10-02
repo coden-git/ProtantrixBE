@@ -4,14 +4,15 @@ const masters = {
     mixingRatios: [{ label: 'M5', value: 'M5', meta: "1 Cement, 5 Sand, 10 Coarse aggregate",  id:1 }, { label: 'M7.5', value: 'M7.5', meta: "1 Cement, 4 Sand, 8 Coarse aggregate", id:2 }], // others
     reinforcementWeights: [{ label: '6', value: 0.22, id:1 }, { label: '8', value: 0.395, id:2 }],
     mortarsRatio: [{ label: '1:6', value: '1:6', id:1 }, { label: '1:7', value: '1:7',id:2 }], // others
-    pvcPlumbing: [{ label: '1/8', value: 1230, id:1 }, { label: '1/4', value: 1130,id:2 }], // others //TODO
+    pvcPlumbingPressure: [{ label: '1/8', value: 1230, id:1 }, { label: '1/4', value: 1130,id:2 }], // others //TODO
+    pvcPlumbing: [{ label: '1/8', value: '1/8', id:1 }, { label: '1/4', value: '1/4',id:2 }, { label: '3/8', value: '3/8',id:3 }, { label: '1/2', value: '1/2',id:4 }], // others //TODO
     cpvcPlumbing: [{ label: '1/2 - 2 Class 1', value: '1/2 - 2 Class 1', id:1 }, { label: '1/2 - 2 Class 2', value: '1/2 - 2 Class 2', id:2 }], // others //TODO
     acCopperDia: [{ label: '1/8', value: 3.175, id:1 }, { label: '1/4', value: 6.35,id:2 }], // others //TODO
-    conduitSizing: [{label:20, value:20}, {label:25, value:25}],
+    conduitSizing: [{label:'20', value:20}, {label:'25', value:25}],
     switchBoxes: [{label:'1 module plate', value:'1 module plate'}, {label:'2 module plate', value:'2 module plate'}],
     leakTestDays: 10,
     excavation: [{ label: '0-1.5m', value: '0-1.5m', id:1 }, { label: '1.5-3m', value: '1.5-3m', id:2 }],
-    cubeCastDays: [{ label: '14th Day M5', value: 14, id:1 }, { label: '28th Day M5', value: 28, id:2 }, { label: '14th Day 7.5', value: 14, id:3 }, { label: '28th Day 7.5', value: 28, id:4 }],
+    cubeCastDays: [{ label: '14th Day M5',  meta: "1 Cement, 5 Sand, 10 Coarse aggregate", value: 14, id:1 }, { label: '28th Day M5', value: 28, meta: '1 Cement, 5 Sand, 10 Coarse aggregate', id:2 }, { label: '14th Day 7.5', value: 14, id:3, meta:'1 Cement, 4 Sand, 8 Coarse aggregate' }, { label: '28th Day 7.5', value: 28, id:4, meta: '1 Cement, 4 Sand, 8 Coarse aggregate' }],
     masionry: [{ label: '100mm', value: '100mm', id:1 }, { label: '150mm', value: '150mm', id:2 }, { label: '200mm', value: '200mm', id:3 }, { label: '230mm', value: '230mm', id:4 }],
     structuralSteel: [{ label: 'MS Angle 20*20*3', value: '0.9', id:1 }, { label: 'MS Beams ISLB 100*50', value: '8', id:2 }, { label: 'MS Channel 75*40', value: '6.8', id:3 }],
     electricalCabling: [{ label: '20 mm', value: '20 mm', id:1 }, { label: '25 mm', value: '25 mm', id:2 }, { label: '32 mm', value: '32 mm', id:3 }, { label: '40 mm', value: '40 mm', id:4 }],
@@ -30,10 +31,10 @@ const measurements = {
     CUM: {
         name: 'L*B*H',
         UOM: 'CUM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' }, { type: 'label', value: 'Breadth' }, { type: 'label', value: 'height' }, { type: 'label', value: 'total (cum)' }],
-            [{ type: 'text', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', value: 'COMPUTE', formula: "*" }]
+            [{ type: 'text', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', computeType: 'COMPUTE', formula: "*" }]
         ],
         type: "table",
         finalTotal: "total"
@@ -44,7 +45,18 @@ const measurements = {
         isMulti: true,
         data: [
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' }, { type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'Height (m)' }, { type: 'label', value: 'Total (cum)' }],
-            [{ type: 'dropdown', value: '', options: masters.mixingRatios }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', value: 'COMPUTE', formula: "*" }]
+            [{ type: 'dropdown', value: '', options: masters.mixingRatios }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', computeType: 'COMPUTE', formula: "*" }]
+        ],
+        finalTotal: "name",
+        type: "table"
+    },
+    CUM_EXCAVATION: { 
+        name: 'L*B*H',
+        UOM: 'CUM',
+        isMulti: true,
+        data: [
+            [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' }, { type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'Height (m)' }, { type: 'label', value: 'Total (cum)' }],
+            [{ type: 'dropdown', value: '', options: masters.excavation }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', computeType: 'COMPUTE', formula: "*" }]
         ],
         finalTotal: "name",
         type: "table"
@@ -53,10 +65,10 @@ const measurements = {
     KgsDia: {
         name: 'Running meter Kgs',
         UOM: 'KGs',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Dia' }, { type: 'label', value: 'Length (m)' }, { type: 'label', value: 'total (kgs)' }],
-            [{ type: 'dropdown', value: '', options: masters.reinforcementWeights }, { type: 'number', value: '' },  { type: 'label', value: 'COMPUTE', formula: "*" }]
+            [{ type: 'dropdown', value: '', options: masters.reinforcementWeights }, { type: 'number', value: '' },  { type: 'label', computeType: 'COMPUTE_VALUE', formula: "*" }]
         ],
         finalTotal: "total",
         type: "table"
@@ -64,10 +76,10 @@ const measurements = {
     SqM: {
         name: 'l*b',
         UOM: 'SqM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' ,},{ type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'total (kgs)' }],
-            [{ type: 'text', value: '', }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', value: 'COMPUTE', formula: "*" }]
+            [{ type: 'text', value: '', }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', computeType: 'COMPUTE', formula: "*" }]
         ],
         finalTotal: "total",
         type: "table"
@@ -75,18 +87,18 @@ const measurements = {
     SqM_MASONRY: {
         name: 'l*b',
         UOM: 'SqM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' ,},{ type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'total (kgs)' }],
-            [{ type: 'dropdown', value: '', options: masters.masionry }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', value: 'COMPUTE', formula: "*" }]
+            [{ type: 'dropdown', value: '', options: masters.masionry }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', computeType: 'COMPUTE', formula: "*" }]
         ],
-        finalTotal: "total",
+        finalTotal: "name",
         type: "table"
     },
     RM_PLUM: {
         name: 'Length',
         UOM: 'RM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Diameter' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.pvcPlumbing }, { type: 'number', value: '' }]
@@ -97,7 +109,7 @@ const measurements = {
     RM_CPVC: {
         name: 'Length',
         UOM: 'RM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Diameter' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.cpvcPlumbing }, { type: 'number', value: '' }]
@@ -108,7 +120,7 @@ const measurements = {
     RM_CONDUIT: {
         name: 'Length',
         UOM: 'RM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Size' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.conduitSizing }, { type: 'number', value: '' }]
@@ -119,7 +131,7 @@ const measurements = {
     SWITCH_COUNT: {
         name: 'Switch Count',
         UOM: 'Nos',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Size' }, { type: 'label', value: 'Nos' }],
             [{ type: 'dropdown', value: '',options: masters.switchBoxes }, { type: 'number', value: '' }]
@@ -130,7 +142,7 @@ const measurements = {
     AC_CONDUIT:{
         name: 'AC Conduit',
         UOM: 'RM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Size' }, { type: 'label', value: 'Nos' }],
             [{ type: 'dropdown', value: '',options: masters.acCopperDia }, { type: 'number', value: '' }]
@@ -141,7 +153,7 @@ const measurements = {
     EARTHING: {
         name: 'Earthing values',
         UOM: 'Nos',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'type' }, { type: 'label', value: 'location' },  { type: 'label', value: 'value' }],
             [{ type: 'text', value: ''}, { type: 'text', value: '' }, { type: 'number', value: '' }]
@@ -153,7 +165,7 @@ const measurements = {
     STRUCTURAL_STEEL: {
         name: 'Structural Steel',
         UOM: 'Kg',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Meters' }],
             [{ type: 'dropdown', value: '',options: masters.structuralSteel }, { type: 'number', value: '' }]
@@ -164,7 +176,7 @@ const measurements = {
     RM_ELECTRICAL: {
         name: 'Length',
         UOM: 'RM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Diameter' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.electricalCabling }, { type: 'number', value: '' }]
@@ -175,7 +187,7 @@ const measurements = {
     RM_CCTV: {
         name: 'Length',
         UOM: 'RM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Diameter' }, { type: 'label', value: 'Length (m)' }],
             [{ type: 'dropdown', value: '',options: masters.ccTvCabling }, { type: 'number', value: '' }]
@@ -186,7 +198,7 @@ const measurements = {
     FALSE_CEILING_SUPPORT:{
         name: 'False Ceiling Support',
         UOM: 'Nos',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Support' }, { type: 'label', value: 'Quantity' }],
             [{ type: 'text', value: '' }, { type: 'number', value: '' }]
@@ -197,7 +209,7 @@ const measurements = {
     FALSE_CEILING:{
         name: 'False Ceiling',
         UOM: 'SqM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Type' }, { type: 'label', value: 'Quantity' }],
             [{ type: 'dropdown', value: '', options: masters.falseCeilingTypes }, { type: 'number', value: '' }]
@@ -208,10 +220,10 @@ const measurements = {
     FRAMING:{
         name: 'Framing',
         UOM: 'NOs',
-        ismulti: true,
+        isMulti: true,
         data: [
-            [{ type: 'label', value: 'Name' }, { type: 'label', value: 'length' }, { type: 'label', value: 'Breadth' }, {type:'label', value:'Nos'}],
-            [{ type: 'text', value: ''}, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }]
+            [{ type: 'label', value: 'L X B' }, {type:'label', value:'Nos'}],
+            [{ type: 'text', value: '', disabled:true}, { type: 'number', value: '' }]
         ],
         finalTotal: "name",
         type: "table"
@@ -219,7 +231,7 @@ const measurements = {
     PAINT_INTERNAL:{
         name: 'Internal Paint',
         UOM: 'SqM',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'Type' }, { type: 'label', value: 'Quantity' }],
             [{ type: 'dropdown', value: '', options: masters.internalPaint }, { type: 'number', value: '' }]
@@ -230,7 +242,7 @@ const measurements = {
     ELECTRICAL_FITTINGS: {
         name: 'Electrical Fittings',
         UOM: 'Nos',
-        ismulti: true,
+        isMulti: true,
         data: [
             [{ type: 'label', value: 'item name' }, { type: 'label', value: 'location' },  { type: 'label', value: 'Nos' }],
             [{ type: 'text', value: ''}, { type: 'text', value: '' }, { type: 'number', value: '' }]
@@ -262,12 +274,12 @@ const leakTestTable = [
         {
             type:'dropdown',
             value: '',
-            options:masters.pvcPlumbing
+            options:masters.pvcPlumbingPressure
         },
         {
             type:'number',
             value: '',
-            validation:{on: masters.pvcPlumbing, formula:'<'}
+            validation:{formula:'<'}
         },
         {
             type:'number',
@@ -301,13 +313,14 @@ const leakTestTableAC = [
     ],
     [
         {
-            type:'text',
+            type:'dropdown',
             value: '',
+            options: masters.pvcPlumbingPressure
         },
         {
             type:'number',
             value: '',
-            validation:{on: masters.pvcPlumbing, formula:'<'}
+            validation:{formula:'<'}
         },
         {
             type:'number',
@@ -326,10 +339,7 @@ const cubeCastTable = [
             type:'label',
             value: 'Mixing Ratio,'
         },
-        {
-            type:'label',
-            value: 'Days'
-        },
+        
         {
             type:'label',
             value: 'Current Value'
@@ -344,16 +354,12 @@ const cubeCastTable = [
         {
             type:'dropdown',
             value: '',
-            options: masters.mixingRatios
-        },
-        {
-            type:"number",
-            value: '',
+            options: masters.cubeCastDays
         },
         {
             type:'number',
             value: '',
-            validation:{on: masters.cubeCastDays, formula:'<'}
+            validation:{formula:'<'}
         },
         {
             type: 'image',
@@ -366,7 +372,7 @@ const pressureTable = [
     [
         {
             type:'label',
-            value: 'Description'
+            value: 'Pipe size'
         },
         {
             type:'label',
@@ -375,20 +381,29 @@ const pressureTable = [
         {
             type:'label',
             value: 'Duration'
+        },
+        {
+            type:'label',
+            value: 'Image'
         }
-        
     ],
     [
         {
-            type:'text',
+            type:'dropdown',
             value: '',
+            options: masters.pvcPlumbingPressure
         },
         {
             type:'number',
             value: '',
+            validation:{formula:'<'}
         },
         {
             type: 'number',
+            value: ''
+        },
+        {
+            type: 'image',
             value: ''
         }
     ]
@@ -415,6 +430,7 @@ const checkList = {
         name: '$name',
         "type": "Table",
         "isRequired": true,
+        isMulti: true,
         value: [],
     },
     dateRange: {
@@ -447,7 +463,7 @@ const createActivityData = () => {
                 { name: "Statutory permissions", type: checkList.checkBox },
                 { name: "Plan and elevation", type: checkList.checkBox },
                 { name: "EHS work permits", type: checkList.checkBox },
-                { name: "pvcPlumbing and electrical drawing", type: checkList.checkBox },
+                { name: "pvc plumbing and electrical drawing", type: checkList.checkBox },
                 { name: "BOQ - Bill of quantities", type: checkList.checkBox },
                 { name: "Project schedule", type: checkList.checkBox },
                 { name: "QMS Document upload", type: checkList.upload },
@@ -481,7 +497,7 @@ const createActivityData = () => {
             checkLists: [
                 { name: "Level check", type: checkList.checkBox },
             ],
-            measurement: measurements.CUM_MIXING
+            measurement: measurements.CUM_EXCAVATION
         },
         {
             name: 'Footing PCC',
@@ -489,7 +505,7 @@ const createActivityData = () => {
             poTrigger: "id",
             checkLists: [
                 { name: "Level check", type: checkList.checkBox },
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true },
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
                 { name: "Curing (3 days)", type: checkList.checkBox, isRequired:false }
             ],
             measurement: measurements.CUM_MIXING
@@ -534,8 +550,8 @@ const createActivityData = () => {
                 { name: "Honey comb", type: checkList.checkBox },
                 { name: "Curing", type: checkList.checkBox, isRequired:false },
                 { name: "Cube cast", type: checkList.checkBox }, 
-                { name: "Cube test", type: {...checkList.table, isRequired:false}, value:cubeCastTable},
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true }
+                { name: "Cube test", type: {...checkList.table, isRequired:false},  value:cubeCastTable},
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true }
               ],
             measurement: measurements.CUM_MIXING
         },
@@ -561,7 +577,7 @@ const createActivityData = () => {
             poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
             poTrigger: "id",
             checkLists:  [
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true },
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
                 { name: "Vibrator", type: checkList.checkBox },
                 { name: "Honey comb", type: checkList.checkBox },
                 { name: "Cube cast", type: checkList.checkBox },
@@ -585,7 +601,7 @@ const createActivityData = () => {
             poTrigger: "id",
             checkLists:  [
                 { name: "Mud mix", type: checkList.checkBox },
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, ismulti: true, displayMeta: true },
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, isMulti: true, displayMeta: true },
                 { name: "Curing", type: checkList.checkBox, isRequired:false }
               ],
             measurement: measurements.CUM_MIXING  
@@ -598,7 +614,7 @@ const createActivityData = () => {
                 { name: "Dimension check", type: checkList.checkBox },
                 { name: "Level check", type: checkList.checkBox },
                 { name: "Curing", type: checkList.checkBox, isRequired: false},
-                { name: "Mortar Ratio", type: checkList.dropdown, options:masters.mortarsRatio, displayMeta: true, ismulti: true }
+                { name: "Mortar Ratio", type: checkList.dropdown, options:masters.mortarsRatio, displayMeta: true, isMulti: true }
               ],
             measurement: measurements.CUM  
         },
@@ -608,7 +624,7 @@ const createActivityData = () => {
             poTrigger: "id",
             checkLists:  [
                 { name: "Level Check", type: checkList.checkBox },
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, ismulti: true, displayMeta: true },
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, isMulti: true, displayMeta: true },
                 { name: "Curing", type: checkList.checkBox, isRequired: false }
               ],
             measurement: measurements.CUM_MIXING
@@ -639,10 +655,10 @@ const createActivityData = () => {
             poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
             poTrigger: "id",
             checkLists: [
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true },
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
                 { name: "Vibrator", type: checkList.checkBox },
                 { name: "Honey comb", type: checkList.checkBox },
-                { name: "Cube test", type: checkList.checkBox },
+                { name: "Cube cast", type: checkList.checkBox },
                 {name: "Cube test", type: {...checkList.table, isRequired:false}, value:cubeCastTable},
                 { name: "Curing", type: checkList.checkBox, isRequired: false }
               ],
@@ -658,7 +674,7 @@ const createActivityData = () => {
         },
         {
             name: 'Drain Plumbing',
-            poValue: masters.pvcPlumbing.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.pvcPlumbing.map(e=>({ label: e.label, value: 100, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Position check", type: checkList.checkBox },
@@ -706,9 +722,9 @@ const createActivityData = () => {
             checkLists: [
                 { name: "Block wetting", type: checkList.checkBox },
                 { name: "plumb and right angle", type: checkList.checkBox },
-                { name: "Mortar Ratio", type: checkList.dropdown, options:masters.mortarsRatio, displayMeta: true, ismulti: true }
+                { name: "Mortar Ratio", type: checkList.dropdown, options:masters.mortarsRatio, displayMeta: true, isMulti: true }
               ],
-            measurement: measurements.SqM_BLOCK
+            measurement: measurements.SqM_MASONRY
         },
         {
             name: 'Brick Masonry',
@@ -717,7 +733,7 @@ const createActivityData = () => {
             checkLists: [
                 { name: "Block wetting", type: checkList.checkBox },
                 { name: "plumb and right angle", type: checkList.checkBox },
-                { name: "Mortar Ratio", type: checkList.dropdown, options:masters.mortarsRatio, displayMeta: true, ismulti: true }
+                { name: "Mortar Ratio", type: checkList.dropdown, options:masters.mortarsRatio, displayMeta: true, isMulti: true }
               ]
               ,
             measurement: measurements.SqM_MASONRY  
@@ -729,7 +745,7 @@ const createActivityData = () => {
             checkLists: [
                 { name: "Block wetting", type: checkList.checkBox },
                 { name: "plumb and right angle", type: checkList.checkBox },
-                { name: "Mortar Ratio", type: checkList.dropdown, options:masters.mortarsRatio, displayMeta: true, ismulti: true }
+                { name: "Mortar Ratio", type: checkList.dropdown, options:masters.mortarsRatio, displayMeta: true, isMulti: true }
               ]
               ,
             measurement: measurements.SqM  
@@ -742,7 +758,7 @@ const createActivityData = () => {
                 { name: "Vibrator", type: checkList.checkBox },
                 { name: "Honey comb", type: checkList.checkBox },
                 { name: "Curing 7days", type: checkList.checkBox, isRequired:false },
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true }
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true }
               ],
             measurement: measurements.CUM_MIXING  
         },
@@ -754,7 +770,7 @@ const createActivityData = () => {
                 { name: "Vibrator", type: checkList.checkBox },
                 { name: "Honey comb", type: checkList.checkBox },
                 { name: "Curing 7days", type: checkList.checkBox, isRequired:false },
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true }
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true }
               ],
             measurement: measurements.CUM_MIXING
         },
@@ -804,7 +820,7 @@ const createActivityData = () => {
                 { name: "Vibrator", type: checkList.checkBox },
                 { name: "Honey comb", type: checkList.checkBox },
                 { name: "Curing 15days", type: checkList.checkBox, isRequired:false },
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true },
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
                 { name: "Cube cast", type: checkList.checkBox },
                 { name: "Cube test", type: {...checkList.table, isRequired:false}, value:cubeCastTable},
               ]
@@ -819,7 +835,7 @@ const createActivityData = () => {
                 { name: "Vibrator", type: checkList.checkBox },
                 { name: "Honey comb", type: checkList.checkBox },
                 { name: "Curing 15days", type: checkList.checkBox, isRequired:false },
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true },
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
                 { name: "Cube cast", type: checkList.checkBox },
                 { name: "Cube test", type: {...checkList.table, isRequired:false}, value:cubeCastTable},
                 { name: "L-Flashing and expansion joints", type: checkList.checkBox }, 
@@ -832,7 +848,7 @@ const createActivityData = () => {
             poTrigger: "id",
             name: "Column Extension",
             checkLists: [
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true },
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
                 { name: "Lapping check", type: checkList.checkBox }, 
               ]
               ,
@@ -866,7 +882,6 @@ const createActivityData = () => {
             checkLists: [
                 { name: "Chasing depth", type: checkList.checkBox },
                 { name: "Positioning and dimensions", type: checkList.checkBox },
-                { name: "Positioning and dimensions", type: checkList.checkBox }, 
               ]
               ,
             measurement: measurements.RM_CONDUIT  
@@ -1016,7 +1031,7 @@ const createActivityData = () => {
             poTrigger: "id",
             name: "Restroom concrete ",
             checkLists: [
-                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, ismulti: true },
+                { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
               ],
             measurement:  measurements.CUM
         },
