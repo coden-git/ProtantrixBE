@@ -33,7 +33,7 @@ const measurements = {
         UOM: 'CUM',
         isMulti: true,
         data: [
-            [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' }, { type: 'label', value: 'Breadth' }, { type: 'label', value: 'height' }, { type: 'label', value: 'total (cum)' }],
+            [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' }, { type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'height (m)' }, { type: 'label', value: 'total (cum)' }],
             [{ type: 'text', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', computeType: 'COMPUTE', formula: "*" }]
         ],
         type: "table",
@@ -78,7 +78,7 @@ const measurements = {
         UOM: 'SqM',
         isMulti: true,
         data: [
-            [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' ,},{ type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'total (kgs)' }],
+            [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' ,},{ type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'total (SqM)' }],
             [{ type: 'text', value: '', }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', computeType: 'COMPUTE', formula: "*" }]
         ],
         finalTotal: "total",
@@ -89,7 +89,7 @@ const measurements = {
         UOM: 'SqM',
         isMulti: true,
         data: [
-            [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' ,},{ type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'total (kgs)' }],
+            [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Length (m)' ,},{ type: 'label', value: 'Breadth (m)' }, { type: 'label', value: 'total (SqM)' }],
             [{ type: 'dropdown', value: '', options: masters.masionry }, { type: 'number', value: '' }, { type: 'number', value: '' }, { type: 'label', computeType: 'COMPUTE', formula: "*" }]
         ],
         finalTotal: "name",
@@ -170,7 +170,7 @@ const measurements = {
             [{ type: 'label', value: 'Name' }, { type: 'label', value: 'Meters' }],
             [{ type: 'dropdown', value: '',options: masters.structuralSteel }, { type: 'number', value: '' }]
         ],
-        finalTotal: "total",
+        finalTotal: "name",
         type: "table"
     },
     RM_ELECTRICAL: {
@@ -222,7 +222,7 @@ const measurements = {
         UOM: 'NOs',
         isMulti: true,
         data: [
-            [{ type: 'label', value: 'L X B' }, {type:'label', value:'Nos'}],
+            [{ type: 'label', value: 'Name, L X B' }, {type:'label', value:'Nos'}],
             [{ type: 'text', value: '', disabled:true}, { type: 'number', value: '' }]
         ],
         finalTotal: "name",
@@ -233,7 +233,7 @@ const measurements = {
         UOM: 'SqM',
         isMulti: true,
         data: [
-            [{ type: 'label', value: 'Type' }, { type: 'label', value: 'Quantity' }],
+            [{ type: 'label', value: 'Type' }, { type: 'label', value: 'SqM' }],
             [{ type: 'dropdown', value: '', options: masters.internalPaint }, { type: 'number', value: '' }]
         ],
         finalTotal: "name",
@@ -267,7 +267,7 @@ const leakTestTable = [
         },
         {
             type:'label',
-            value: 'Image'
+            value: 'Image',
         },
     ],
     [
@@ -287,7 +287,8 @@ const leakTestTable = [
         },
         {
             type:'image',
-            value: ''
+            value: '',
+            mimeTypes:['image/*']
         },
     ],
 ];
@@ -328,7 +329,8 @@ const leakTestTableAC = [
         },
         {
             type:'image',
-            value: ''
+            value: '',
+            mimeTypes:['image/*']
         },
     ],
 ];
@@ -363,7 +365,8 @@ const cubeCastTable = [
         },
         {
             type: 'image',
-            value: ''
+            value: '',
+            mimeTypes:['image/*']
         }
     ]
 ];
@@ -404,7 +407,8 @@ const pressureTable = [
         },
         {
             type: 'image',
-            value: ''
+            value: '',
+            mimeTypes:['image/*']
         }
     ]
 ];
@@ -833,7 +837,6 @@ const createActivityData = () => {
             name: "Deck sheet concrete",
             checkLists: [
                 { name: "Vibrator", type: checkList.checkBox },
-                { name: "Honey comb", type: checkList.checkBox },
                 { name: "Curing 15days", type: checkList.checkBox, isRequired:false },
                 { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
                 { name: "Cube cast", type: checkList.checkBox },
@@ -1032,6 +1035,8 @@ const createActivityData = () => {
             name: "Restroom concrete ",
             checkLists: [
                 { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
+                { name: "Curing 3 days", type: checkList.checkBox, isRequired:false },
+
               ],
             measurement:  measurements.CUM
         },
@@ -1214,7 +1219,7 @@ const createActivityData = () => {
         },
         {
             poValue: [{isCustom:true, value:measurements.FRAMING}],
-            name: "Wooden window  fixing",
+            name: "Wooden window fixing",
             poTrigger: "id",
             checkLists: [
                 { name: "Alignment", type: checkList.checkBox},
@@ -1239,7 +1244,7 @@ const createActivityData = () => {
         },
         {
             poValue: [{isCustom:true, value:measurements.FRAMING}],
-            name: "Wooden door  fixing",
+            name: "Wooden door fixing",
             checkLists: [
                 { name: "Alignment", type: checkList.checkBox},
                 { name: "Plumb", type: checkList.checkBox},
