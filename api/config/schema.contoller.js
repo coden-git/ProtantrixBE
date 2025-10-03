@@ -228,6 +228,17 @@ const measurements = {
         finalTotal: "name",
         type: "table"
     },
+    LAYING:{
+        name: 'Framing',
+        UOM: 'SFt',
+        isMulti: true,
+        data: [
+            [{ type: 'label', value: 'Description' }, {type:'label', value:'SqFT'}],
+            [{ type: 'text', value: '', disabled:true}, { type: 'number', value: '' }]
+        ],
+        finalTotal: "name",
+        type: "table"
+    },
     PAINT_INTERNAL:{
         name: 'Internal Paint',
         UOM: 'SqM',
@@ -496,7 +507,7 @@ const createActivityData = () => {
         },
         {
             name: 'Excavation',
-            poValue: masters.excavation.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.excavation.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Level check", type: checkList.checkBox },
@@ -505,7 +516,7 @@ const createActivityData = () => {
         },
         {
             name: 'Footing PCC',
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Level check", type: checkList.checkBox },
@@ -547,7 +558,7 @@ const createActivityData = () => {
         },
         {
             name: 'Footing concrete (RCC)',
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists:  [
                 { name: "Vibrator", type: checkList.checkBox },
@@ -578,7 +589,7 @@ const createActivityData = () => {
         },
         {
             name: 'Column concrete',
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists:  [
                 { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
@@ -601,7 +612,7 @@ const createActivityData = () => {
         },
         {
             name: 'Size Stone PCC',
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists:  [
                 { name: "Mud mix", type: checkList.checkBox },
@@ -624,7 +635,7 @@ const createActivityData = () => {
         },
         {
             name: 'Sizestone top PCC',
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists:  [
                 { name: "Level Check", type: checkList.checkBox },
@@ -656,7 +667,7 @@ const createActivityData = () => {
         },
         {
             name: 'Plinth concrete',
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Mixing ratio", type: checkList.dropdown, options: masters.mixingRatios, displayMeta: true, isMulti: true },
@@ -678,7 +689,7 @@ const createActivityData = () => {
         },
         {
             name: 'Drain Plumbing',
-            poValue: masters.pvcPlumbing.map(e=>({ label: e.label, value: 100, id: e.id })),
+            poValue: masters.pvcPlumbing.map(e=>({ label: e.label, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Position check", type: checkList.checkBox },
@@ -721,7 +732,7 @@ const createActivityData = () => {
         },
         {
             name: 'Block Masonry',
-            poValue: masters.masionry.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.masionry.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Block wetting", type: checkList.checkBox },
@@ -732,7 +743,7 @@ const createActivityData = () => {
         },
         {
             name: 'Brick Masonry',
-            poValue: masters.masionry.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.masionry.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Block wetting", type: checkList.checkBox },
@@ -756,7 +767,7 @@ const createActivityData = () => {
         },
         {
             name: 'Lintel Concrete',
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Vibrator", type: checkList.checkBox },
@@ -768,7 +779,7 @@ const createActivityData = () => {
         },
         {
             name: 'Chajja Concrete',
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Vibrator", type: checkList.checkBox },
@@ -803,7 +814,7 @@ const createActivityData = () => {
         },
         {
             name: 'Slab conduiting',
-            poValue: masters.conduitSizing.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.conduitSizing.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Conduit quality check", type: checkList.checkBox },
@@ -818,7 +829,7 @@ const createActivityData = () => {
         },
         {
             name: "Slab Concrete",
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             checkLists: [
                 { name: "Vibrator", type: checkList.checkBox },
@@ -832,7 +843,7 @@ const createActivityData = () => {
             measurement: measurements.CUM_MIXING
         },
         {
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "Deck sheet concrete",
             checkLists: [
@@ -847,7 +858,7 @@ const createActivityData = () => {
             measurement: measurements.CUM_MIXING
         },
         {
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "Column Extension",
             checkLists: [
@@ -879,7 +890,7 @@ const createActivityData = () => {
             measurement: measurements.SqM  
         },
         {
-            poValue: masters.conduitSizing.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.conduitSizing.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "Electrical wall conduiting",
             checkLists: [
@@ -890,7 +901,7 @@ const createActivityData = () => {
             measurement: measurements.RM_CONDUIT  
         },
         {
-            poValue: masters.switchBoxes.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.switchBoxes.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "Electrical switch box",
             checkLists: [
@@ -913,7 +924,7 @@ const createActivityData = () => {
             measurement: measurements.SAME_AS_PO
         },
         {
-            poValue: masters.acCopperDia.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.acCopperDia.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "AC Conceals",
             checkLists: [
@@ -974,7 +985,7 @@ const createActivityData = () => {
             measurement:  measurements.LOT
         },
         {
-            poValue: masters.pvcPlumbing.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.pvcPlumbing.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "CPVC Plumbing",
             checkLists: [
@@ -1009,7 +1020,7 @@ const createActivityData = () => {
             measurement:  measurements.SqM
         },
         {
-            poValue: masters.pvcPlumbing.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.pvcPlumbing.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "Washroom Drain Plumbing",
             checkLists: [
@@ -1030,7 +1041,7 @@ const createActivityData = () => {
             measurement:  measurements.CUM
         },
         {
-            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.mixingRatios.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "Restroom concrete ",
             checkLists: [
@@ -1059,7 +1070,7 @@ const createActivityData = () => {
             measurement:  measurements.LOT
         },
         {
-            poValue: masters.electricalCabling.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.electricalCabling.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "electrical cabling",
             checkLists: [
@@ -1070,7 +1081,7 @@ const createActivityData = () => {
             measurement:  measurements.RM_ELECTRICAL
         },
         {
-            poValue: masters.ccTvCabling.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.ccTvCabling.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "CCTV/network cabling",
             checkLists: [
@@ -1100,7 +1111,7 @@ const createActivityData = () => {
             measurement:  measurements.LOT
         },
         {
-            poValue: masters.falseCeilingTypes.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.falseCeilingTypes.map(e=>({ label: e.value, value: null, id: e.id })),
             poTrigger: "id",
             name: "False ceiling",
             checkLists: [
@@ -1156,7 +1167,7 @@ const createActivityData = () => {
             measurement:  measurements.LOT
         },
         {
-            poValue: [{label:"Granite Laying", value:100}],
+            poValue: [{isCustom:true, value:measurements.LAYING}],
             poTrigger: "value",
             name: "Granite Laying",
             checkLists: [
@@ -1167,10 +1178,10 @@ const createActivityData = () => {
                 { name: "Curing 3 days", type: checkList.checkBox, isRequired: false},
 
               ],
-            measurement:  {...measurements.LOT, UOM:'SFt'}
+            measurement:  measurements.LAYING
         },
         {
-            poValue: [{label:"Marble Laying", value:100}],
+            poValue: [{isCustom:true, value:measurements.LAYING}],
             poTrigger: "value",
             name: "Marble Laying",
             checkLists: [
@@ -1181,10 +1192,10 @@ const createActivityData = () => {
                 { name: "Curing 3 days", type: checkList.checkBox, isRequired: false},
 
               ],
-            measurement:  {...measurements.LOT, UOM:'SFt'}
+            measurement:  measurements.LAYING
         },
         {
-            poValue: [{label:"Flooring and wall tiles laying", value:100}],
+            poValue: measurements.LAYING,
             poTrigger: "value",
             name: "Flooring and wall tiles laying",
             checkLists: [
@@ -1195,7 +1206,7 @@ const createActivityData = () => {
                 { name: "Curing 3 days", type: checkList.checkBox, isRequired: false},
 
               ],
-            measurement:  {...measurements.LOT, UOM:'SFt'}
+            measurement:  measurements.LAYING
         },
         {
             poValue: [{label:"Floor cleaning and grouting", value:100}],
@@ -1334,7 +1345,7 @@ const createActivityData = () => {
             measurement:  measurements.LOT
         },
         {
-            poValue: masters.internalPaint.map(e=>({ label: e.value, value: 100, id: e.id })),
+            poValue: masters.internalPaint.map(e=>({ label: e.value, value: null, id: e.id })),
             name:'Internal Paint application',
             poTrigger: "id",
             checkLists: [
