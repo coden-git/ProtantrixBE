@@ -52,7 +52,6 @@ async function createProject(req, res) {
     }
 }
 
-module.exports = { createProject };
 
 /**
  * GET /projects
@@ -198,7 +197,66 @@ const formatPayload = (activities, isAdmin) => {
     return userActivities
 }
 
-module.exports = { createProject, listProjects, getProjectActivities };
+
+/**
+ * PUT /projects/:id
+ * Update project by UUID
+ * Request body: { name?: string, description?: string, status?: string }
+ */
+async function updateProject(req, res) {
+    try {
+        const { id } = req.params;
+        const { name, description, status } = req.body || {};
+
+        if (!id) {
+            return res.status(400).json({ ok: false, error: 'Project ID (UUID) is required' });
+        }
+
+        // Find project by UUID and ensure it's not deleted
+        const project = await Project.findOne({ uuid: id, status: { $ne: 'DELETED' } });
+        if (!project) {
+            return res.status(404).json({ ok: false, error: 'Project not found or deleted' });
+        }
+
+        // Update fields if provided
+        const updates = {};
+        if (name !== undefined && typeof name === 'string') {
+            updates.name = name.trim();
+        }
+        if (description !== undefined) {
+            updates.description = description === null ? null : String(description).trim();
+        }
+        if (status !== undefined && ['READY', 'IN_PROGRESS', 'COMPLETED', 'DELETED'].includes(status)) {
+            updates.status = status;
+        }
+
+        // Update the project
+        const updatedProject = await Project.findOneAndUpdate(
+            { uuid: id },
+            { $set: updates },
+            { new: true, runValidators: true }
+        );
+
+        // Return minimal project data (exclude activities)
+        const minimal = {
+            _id: updatedProject._id,
+            uuid: updatedProject.uuid,
+            name: updatedProject.name,
+            description: updatedProject.description,
+            status: updatedProject.status,
+            docs: updatedProject.docs,
+            json_schema_version: updatedProject.json_schema_version,
+            createdAt: updatedProject.createdAt,
+            updatedAt: updatedProject.updatedAt,
+        };
+
+        return res.status(200).json({ ok: true, project: minimal });
+    } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('updateProject error:', err && err.stack ? err.stack : err);
+        return res.status(500).json({ ok: false, error: err.message || String(err) });
+    }
+}
 
 /**
  * PUT /projects/:id/activities/:activityId
@@ -245,4 +303,4 @@ async function updateActivity(req, res) {
     }
 }
 
-module.exports = { createProject, listProjects, getProjectActivities, updateActivity };
+module.exports = { createProject, listProjects, getProjectActivities, updateProject, updateActivity };

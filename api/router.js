@@ -27,6 +27,8 @@ openapiBuilder.attachDoc('/create-schema', 'get', {
 router.post('/projects/create', [middlewares.bodyValidator(projectValidator.createProjectSchema)], projectController.createProject);
 // GET /projects - paginated list of projects (minimal summaries)
 router.get('/projects/list', projectController.listProjects);
+// PUT /projects/:id - update project by UUID
+router.put('/projects/:id', [middlewares.paramsValidator(projectValidator.projectIdParamsSchema)], projectController.updateProject);
 
 openapiBuilder.attachDoc('/projects/list', 'get', {
 	summary: 'List projects (paginated, excludes activities)',
@@ -37,6 +39,40 @@ openapiBuilder.attachDoc('/projects/list', 'get', {
 	],
 	responses: {
 		'200': { description: 'Paginated list of projects' },
+		'500': { description: 'Server error' },
+	},
+});
+
+openapiBuilder.attachDoc('/projects/{id}', 'put', {
+	summary: 'Update project by UUID',
+	tags: ['project'],
+	parameters: [
+		{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'Project UUID' },
+	],
+	requestBody: {
+		required: true,
+		content: {
+			'application/json': {
+				schema: {
+					type: 'object',
+					properties: {
+						name: { type: 'string', description: 'Project name' },
+						description: { type: 'string', nullable: true, description: 'Project description' },
+						status: { type: 'string', enum: ['READY', 'IN_PROGRESS', 'COMPLETED', 'DELETED'], description: 'Project status' },
+					},
+				},
+				example: {
+					name: 'Updated Project Name',
+					description: 'Updated project description',
+					status: 'IN_PROGRESS',
+				},
+			},
+		},
+	},
+	responses: {
+		'200': { description: 'Project updated successfully', content: { 'application/json': { schema: { $ref: '#/components/schemas/ProjectCreateResponse' } } } },
+		'400': { description: 'Bad request' },
+		'404': { description: 'Project not found' },
 		'500': { description: 'Server error' },
 	},
 });
