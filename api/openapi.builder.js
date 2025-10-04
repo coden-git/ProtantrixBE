@@ -4,7 +4,7 @@ const baseSpec = {
   info: { title: 'ProtantrixBE API', version: '1.0.0' },
   servers: [{ url: '/api/v1' }],
   paths: {},
-  components: { schemas: {} },
+  components: { schemas: {}, securitySchemes: {} },
 };
 
 function attachDoc(path, method, doc) {
@@ -16,8 +16,16 @@ function addSchema(name, schema) {
   baseSpec.components.schemas[name] = schema;
 }
 
+function addSecurityScheme(name, scheme) {
+  baseSpec.components.securitySchemes[name] = scheme;
+}
+
+function setGlobalSecurity(securityArray) {
+  baseSpec.security = Array.isArray(securityArray) ? securityArray : undefined;
+}
+
 function getSpec() {
   return baseSpec;
 }
 
-module.exports = { attachDoc, addSchema, getSpec };
+module.exports = { attachDoc, addSchema, addSecurityScheme, setGlobalSecurity, getSpec };

@@ -1,4 +1,5 @@
 const isEmpty = require('lodash/isEmpty')
+const jwt = require('jsonwebtoken');
 // Generic Joi-based validator middleware for body, query and params
 // Usage: bodyValidator(schema), queryValidator(schema), paramsValidator(schema)
 function validateSchema(schema, sourceName = 'body') {
@@ -24,3 +25,82 @@ function validateSchema(schema, sourceName = 'body') {
 exports.bodyValidator = (schema) => validateSchema(schema, 'body');
 exports.queryValidator = (schema) => validateSchema(schema, 'query');
 exports.paramsValidator = (schema) => validateSchema(schema, 'params');
+
+// Admin auth middleware: checks authtoken against process.env.ADMIN_TOKEN
+function stripQuotes(str) {
+    if (typeof str !== 'string') return str;
+    const s = str.trim();
+    if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+        return s.slice(1, -1);
+    }
+    return s;
+}
+
+exports.adminAuth = (req, res, next) => {
+    try {
+        const expectedRaw = process.env.ADMIN_TOKEN;
+        const expected = stripQuotes(expectedRaw || '');
+        if (!expected) {
+            return res.status(500).json({ ok: false, error: 'ADMIN_TOKEN not configured' });
+        }
+
+        // Prefer custom header 'authtoken'; allow Authorization: Bearer <token> and ?authtoken=
+        const headerToken = req.headers.authtoken || req.headers['x-admin-token'] || '';
+        const authHeader = req.headers.authorization || '';
+        const queryToken = req.query && req.query.authtoken ? String(req.query.authtoken) : '';
+
+        let incoming = String(headerToken || queryToken || authHeader).trim();
+        if (/^bearer\s+/i.test(incoming)) {
+            incoming = incoming.replace(/^bearer\s+/i, '').trim();
+        }
+        incoming = stripQuotes(incoming);
+
+        if (!incoming || incoming !== expected) {
+            return res.status(401).json({ ok: false, error: 'Unauthorized' });
+        }
+        return next();
+    } catch (err) {
+        return res.status(500).json({ ok: false, error: 'Auth check failed' });
+    }
+};
+
+// Role-based JWT auth middleware factory
+// Usage: authRole('admin') or authRole(['admin','user'])
+exports.authRole = (required) => {
+    const requiredRoles = Array.isArray(required) ? required : [required];
+    return (req, res, next) => {
+        try {
+            const authHeader = req.headers.authorization || '';
+            if (!authHeader) {
+                return res.status(401).json({ ok: false, error: 'Missing Authorization header' });
+            }
+            const match = authHeader.match(/^Bearer\s+(.+)/i);
+            if (!match) {
+                return res.status(401).json({ ok: false, error: 'Invalid Authorization header format' });
+            }
+            const token = match[1].trim();
+            if (!process.env.JWT) {
+                return res.status(500).json({ ok: false, error: 'JWT secret not configured' });
+            }
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT.trim());
+            } catch (err) {
+                return res.status(401).json({ ok: false, error: 'Invalid or expired token' });
+            }
+            console.log('Verifying JWT token for roles:', decoded);
+
+            if (!decoded || !decoded?.user?.role) {
+                return res.status(401).json({ ok: false, error: 'Token missing role' });
+            }
+            if (!requiredRoles.includes(decoded?.user?.role)) {
+                return res.status(401).json({ ok: false, error: 'Unauthorized access' });
+            }
+            // Attach user payload
+            req.user = decoded;
+            return next();
+        } catch (err) {
+            return res.status(500).json({ ok: false, error: 'Auth processing failed' });
+        }
+    };
+};

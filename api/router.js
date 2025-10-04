@@ -7,11 +7,13 @@ const projectController = require('./project/project.controller');
 const uploadFormController = require('./project/uploadForm.controller');
 const downloadController = require('./project/download.controller');
 const projectValidator = require('./project/project.validator');
+const userController = require('./user/user.controller');
+const userValidator = require('./user/user.validator');
 const middlewares = require('../middlewares/middleware')
 const openapiBuilder = require('./openapi.builder');
 
 // POST /create-schema - generate activity JSON and store a new versioned schema
-router.get('/create-schema', schemaController.updateConfigWithActivity);
+router.get('/create-schema', [middlewares.adminAuth], schemaController.updateConfigWithActivity);
 
 // attach OpenAPI doc for GET /create-schema
 openapiBuilder.attachDoc('/create-schema', 'get', {
@@ -23,12 +25,85 @@ openapiBuilder.attachDoc('/create-schema', 'get', {
 	},
 });
 
+// Register security scheme for admin token (header: authtoken)
+openapiBuilder.addSecurityScheme('AdminToken', {
+	type: 'apiKey',
+	in: 'header',
+	name: 'authtoken',
+	description: 'Admin token. Alternatively, use Authorization: Bearer <token> or x-admin-token header.',
+});
+
+// POST /create/user/admin - create an admin user
+router.post('/create/user/admin', [middlewares.adminAuth, middlewares.bodyValidator(userValidator.createAdminUserSchema)], userController.createAdminUser);
+
+openapiBuilder.attachDoc('/create/user/admin', 'post', {
+	summary: 'Create an admin user',
+	tags: ['user'],
+	security: [{ AdminToken: [] }],
+	requestBody: {
+		required: true,
+		content: {
+			'application/json': {
+				schema: {
+					type: 'object',
+					properties: {
+						name: { type: 'string' },
+						phone: { type: 'string', description: '10 digit phone number' },
+						password: { type: 'string', format: 'password' },
+					},
+					required: ['name', 'phone', 'password'],
+				},
+				example: {
+					name: 'Admin User',
+					phone: '9998887777',
+					password: 'secret123',
+				},
+			},
+		},
+	},
+	responses: {
+		'201': { description: 'Admin user created' },
+		'400': { description: 'Validation error' },
+		'409': { description: 'User already exists' },
+		'500': { description: 'Server error' },
+	},
+});
+
+// POST /user/login - user login (public)
+router.post('/user/login', [middlewares.bodyValidator(userValidator.loginUserSchema)], userController.loginUser);
+
+openapiBuilder.attachDoc('/user/login', 'post', {
+	summary: 'User login (phone + password)',
+	tags: ['user'],
+	requestBody: {
+		required: true,
+		content: {
+			'application/json': {
+				schema: {
+					type: 'object',
+					properties: {
+						phone: { type: 'string', description: '10 digit phone number' },
+						password: { type: 'string', format: 'password' },
+					},
+					required: ['phone', 'password'],
+				},
+				example: { phone: '9998887777', password: 'secret123' },
+			},
+		},
+	},
+	responses: {
+		'200': { description: 'Login successful (returns token + user)' },
+		'401': { description: 'Invalid credentials' },
+		'500': { description: 'Server error' },
+	},
+});
+
 // POST /projects - create a new project using latest json_schema as activities
-router.post('/projects/create', [middlewares.bodyValidator(projectValidator.createProjectSchema)], projectController.createProject);
+router.post('/projects/create', [middlewares.authRole('admin'), middlewares.bodyValidator(projectValidator.createProjectSchema)], projectController.createProject);
 // GET /projects - paginated list of projects (minimal summaries)
-router.get('/projects/list', projectController.listProjects);
+router.get('/projects/list', [middlewares.authRole(['admin', 'user'])], projectController.listProjects);
 // PUT /projects/:id - update project by UUID
-router.put('/projects/:id', [middlewares.paramsValidator(projectValidator.projectIdParamsSchema)], projectController.updateProject);
+router.put('/projects/:id', [middlewares.authRole(['admin', 'user']), middlewares.paramsValidator(projectValidator.projectIdParamsSchema)], projectController.updateProject);
 
 openapiBuilder.attachDoc('/projects/list', 'get', {
 	summary: 'List projects (paginated, excludes activities)',
@@ -78,7 +153,7 @@ openapiBuilder.attachDoc('/projects/{id}', 'put', {
 });
 
 // GET /projects/:id/activities - return the full activities JSON for a project
-router.get('/projects/:id/activities', [middlewares.paramsValidator(projectValidator.projectIdParamsSchema)], projectController.getProjectActivities);
+router.get('/projects/:id/activities', [middlewares.authRole(['admin', 'user']), middlewares.paramsValidator(projectValidator.projectIdParamsSchema)], projectController.getProjectActivities);
 
 openapiBuilder.attachDoc('/projects/{id}/activities', 'get', {
   summary: 'Get activities JSON for a project',
@@ -88,7 +163,7 @@ openapiBuilder.attachDoc('/projects/{id}/activities', 'get', {
 });
 
 // PUT /projects/:id/activities/:activityId - replace a single activity in the project
-router.put('/projects/:id/activities/:activityId', projectController.updateActivity);
+router.put('/projects/:id/activities/:activityId', [middlewares.authRole(['admin', 'user']), middlewares.paramsValidator(projectValidator.projectIdParamsSchema)], projectController.updateActivity);
 
 openapiBuilder.attachDoc('/projects/{id}/activities/{activityId}', 'put', {
 	summary: 'Replace an activity in a project by activityId',
@@ -102,7 +177,7 @@ openapiBuilder.attachDoc('/projects/{id}/activities/{activityId}', 'put', {
 
 
 // POST /project/upload-form - accept multipart/form-data (field 'file') and upload to S3
-router.post('/project/upload-form', uploadFormController.singleUpload, uploadFormController.handleUploadForm);
+router.post('/project/upload-form', [middlewares.authRole(['admin', 'user']), uploadFormController.singleUpload, uploadFormController.handleUploadForm]);
 
 openapiBuilder.attachDoc('/project/upload-form', 'post', {
 	summary: 'Upload a single file (multipart/form-data) to S3',
@@ -130,7 +205,7 @@ openapiBuilder.attachDoc('/project/upload-form', 'post', {
 });
 
 // GET /project/download/:path - return a presigned URL for a file
-router.get('/project/download/:path', downloadController.getPresignedDownload);
+router.get('/project/download/:path', [middlewares.authRole(['admin', 'user'])], downloadController.getPresignedDownload);
 
 openapiBuilder.attachDoc('/project/download/{path}', 'get', {
 	summary: 'Get a presigned S3 GET URL for a stored file. Path must be URL-encoded',
@@ -146,6 +221,56 @@ openapiBuilder.attachDoc('/project/download/{path}', 'get', {
 	},
 });
 
+
+// POST /user/create - admin creates a standard user
+router.post('/user/create', [middlewares.authRole('admin'), middlewares.bodyValidator(userValidator.createUserSchema)], userController.createStandardUser);
+
+openapiBuilder.addSecurityScheme('BearerAuth', {
+  type: 'http',
+  scheme: 'bearer',
+  bearerFormat: 'JWT',
+  description: 'Paste JWT obtained from /user/login'
+});
+
+openapiBuilder.attachDoc('/user/create', 'post', {
+  summary: 'Admin creates a user (optionally specify role & project refs)',
+  tags: ['user'],
+  security: [{ BearerAuth: [] }],
+  requestBody: {
+    required: true,
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            phone: { type: 'string', description: '10 digit phone number' },
+            password: { type: 'string', format: 'password' },
+            role: { type: 'string', enum: ['user', 'admin'], default: 'user' },
+            projects: { 
+              type: 'array', 
+              items: { 
+                type: 'object', 
+                properties: { uuid: { type: 'string' }, name: { type: 'string' } },
+                required: ['uuid', 'name']
+              },
+              description: 'Array of project reference objects' 
+            },
+          },
+          required: ['name', 'phone', 'password'],
+        },
+        example: { name: 'Jane Smith', phone: '7776665555', password: 'secret123', role: 'user', projects: [{ uuid: 'a1b2c3d4', name: 'Bridge Build' }] },
+      },
+    },
+  },
+  responses: {
+    '201': { description: 'User created' },
+    '400': { description: 'Validation error' },
+    '401': { description: 'Unauthorized' },
+    '409': { description: 'User already exists' },
+    '500': { description: 'Server error' },
+  },
+});
 
 // attach OpenAPI doc for POST /projects/create (request/response schemas added to components)
 openapiBuilder.addSchema('ProjectCreateRequest', projectValidator.createProjectSchema.describe ? projectValidator.createProjectSchema.describe() : { type: 'object' });
