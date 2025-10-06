@@ -122,4 +122,51 @@ async function createStandardUser(req, res) {
   }
 }
 
-module.exports = { createAdminUser, loginUser, createStandardUser };
+// GET /users - list all users (admin only)
+async function listUsers(req, res) {
+  try {
+    // optional ?limit= query param, default 1000, hard max 1000
+    let { limit } = req.query || {};
+    let parsedLimit = parseInt(limit, 10);
+    if (Number.isNaN(parsedLimit) || parsedLimit <= 0) parsedLimit = 1000;
+    if (parsedLimit > 1000) parsedLimit = 1000;
+
+    const users = await User.find()
+      .select('-password -__v')
+      .sort({ createdAt: -1 })
+      .limit(parsedLimit)
+      .lean();
+
+    return res.json({ ok: true, count: users.length, users });
+  } catch (err) {
+    console.error('listActiveUsers error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ ok: false, error: err.message || String(err) });
+  }
+}
+
+// PATCH /user/:id - partial update (admin only) of name, role, isActive
+async function updateUser(req, res) {
+  try {
+    const { id } = req.params || {};
+    if (!id) return res.status(400).json({ ok: false, error: 'Missing user id' });
+
+    const update = {};
+    const { name, role, isActive } = req.body || {};
+    if (typeof name !== 'undefined') update.name = String(name).trim();
+    if (typeof role !== 'undefined') update.role = role === 'admin' ? 'admin' : 'user';
+    if (typeof isActive !== 'undefined') update.isActive = !!isActive;
+
+    if (!Object.keys(update).length) {
+      return res.status(400).json({ ok: false, error: 'No valid fields provided' });
+    }
+
+    const user = await User.findByIdAndUpdate(id, { $set: update }, { new: true }).select('-password -__v');
+    if (!user) return res.status(404).json({ ok: false, error: 'User not found' });
+    return res.json({ ok: true, user });
+  } catch (err) {
+    console.error('updateUser error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ ok: false, error: err.message || String(err) });
+  }
+}
+
+module.exports = { createAdminUser, loginUser, createStandardUser, listUsers, updateUser };

@@ -163,15 +163,28 @@ openapiBuilder.attachDoc('/projects/{id}/activities', 'get', {
 });
 
 // PUT /projects/:id/activities/:activityId - replace a single activity in the project
-router.put('/projects/:id/activities/:activityId', [middlewares.authRole(['admin', 'user']), middlewares.paramsValidator(projectValidator.projectIdParamsSchema)], projectController.updateActivity);
+router.put('/projects/:id/activities/:activityId', [middlewares.authRole(['admin', 'user']), middlewares.paramsValidator(projectValidator.projectUpdateParamsSchema)], projectController.updateActivity);
 
 openapiBuilder.attachDoc('/projects/{id}/activities/{activityId}', 'put', {
 	summary: 'Replace an activity in a project by activityId',
 	tags: ['project'],
+	security: [{ BearerAuth: [] }],
 	parameters: [
 		{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },
 		{ name: 'activityId', in: 'path', required: true, schema: { type: 'string' } },
 	],
+	requestBody: {
+		required: true,
+		content: {
+			'application/json': {
+				schema: {
+					type: 'object',
+					description: 'Full activity object to replace the existing one',
+				},
+				
+			},
+		},
+	},
 	responses: { '200': { description: 'Activity replaced' }, '404': { description: 'Not found' }, '500': { description: 'Server error' } },
 });
 
@@ -270,6 +283,91 @@ openapiBuilder.attachDoc('/user/create', 'post', {
     '409': { description: 'User already exists' },
     '500': { description: 'Server error' },
   },
+});
+
+// GET /users - list all users (max 1000)
+router.get('/users', [middlewares.authRole('admin')], userController.listUsers);
+
+openapiBuilder.attachDoc('/users', 'get', {
+	summary: 'List all users (admin only, max 1000)',
+	tags: ['user'],
+	security: [{ BearerAuth: [] }],
+	parameters: [
+		{ name: 'limit', in: 'query', schema: { type: 'integer', default: 1000, maximum: 1000 }, description: 'Max number of users to return (1-1000)' }
+	],
+	responses: {
+		'200': {
+			description: 'List of active users',
+			content: {
+				'application/json': {
+					schema: {
+						type: 'object',
+						properties: {
+							ok: { type: 'boolean' },
+							count: { type: 'integer' },
+							users: {
+								type: 'array',
+								items: {
+									type: 'object',
+									properties: {
+										_id: { type: 'string' },
+										name: { type: 'string' },
+										phone: { type: 'string' },
+										role: { type: 'string', enum: ['admin', 'user'] },
+										isActive: { type: 'boolean' },
+										projects: { 
+											type: 'array',
+											items: { type: 'object', properties: { uuid: { type: 'string' }, name: { type: 'string' } } }
+										},
+										createdAt: { type: 'string', format: 'date-time' },
+										updatedAt: { type: 'string', format: 'date-time' },
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		'401': { description: 'Unauthorized' },
+		'500': { description: 'Server error' }
+	}
+});
+
+// PATCH /user/{id} - partial update (admin only) name/role/isActive
+router.patch('/user/:id', [middlewares.authRole('admin'), middlewares.bodyValidator(userValidator.updateUserSchema)], userController.updateUser);
+
+openapiBuilder.attachDoc('/user/{id}', 'patch', {
+	summary: 'Update user (partial: name, role, isActive)',
+	tags: ['user'],
+	security: [{ BearerAuth: [] }],
+	parameters: [
+		{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'Mongo _id of user' }
+	],
+	requestBody: {
+		required: true,
+		content: {
+			'application/json': {
+				schema: {
+					type: 'object',
+					properties: {
+						name: { type: 'string' },
+						role: { type: 'string', enum: ['user', 'admin'] },
+						isActive: { type: 'boolean' }
+					},
+					additionalProperties: false
+				},
+				example: { name: 'Updated Name', role: 'admin', isActive: true }
+			}
+		}
+	},
+	responses: {
+		'200': { description: 'User updated' },
+		'400': { description: 'Bad request (no fields or validation error)' },
+		'401': { description: 'Unauthorized' },
+		'404': { description: 'User not found' },
+		'500': { description: 'Server error' }
+	}
 });
 
 // attach OpenAPI doc for POST /projects/create (request/response schemas added to components)

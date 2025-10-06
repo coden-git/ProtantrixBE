@@ -25,4 +25,11 @@ const createUserSchema = Joi.object({
   projects: Joi.array().items(projectRefSchema).default([]),
 });
 
-module.exports = { createAdminUserSchema, loginUserSchema, createUserSchema };
+// Partial update schema - all optional, at least one must be present (enforced in controller)
+const updateUserSchema = Joi.object({
+  name: Joi.string().trim().optional(),
+  role: Joi.string().valid('user', 'admin').optional(),
+  isActive: Joi.boolean().optional(),
+});
+
+module.exports = { createAdminUserSchema, loginUserSchema, createUserSchema, updateUserSchema };

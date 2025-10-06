@@ -82,6 +82,7 @@ exports.authRole = (required) => {
             if (!process.env.JWT) {
                 return res.status(500).json({ ok: false, error: 'JWT secret not configured' });
             }
+            console.log('AuthRole checking token:', token);
             let decoded;
             try {
                 decoded = jwt.verify(token, process.env.JWT.trim());

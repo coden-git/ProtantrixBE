@@ -12,8 +12,14 @@ const projectIdParamsSchema = Joi.object({
   id: Joi.string().required(),
 });
 
+const projectUpdateParamsSchema = Joi.object({
+  id: Joi.string().required(),
+  activityId: Joi.string().required(),
+});
+
 
 module.exports = {
   createProjectSchema,
   projectIdParamsSchema,
+  projectUpdateParamsSchema,
 };

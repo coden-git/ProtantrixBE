@@ -270,6 +270,7 @@ async function updateProject(req, res) {
 async function updateActivity(req, res) {
     try {
         const { id: projectId, activityId } = req.params;
+        console.log('Found project for updateActivity', projectId, activityId);
 
         if (!projectId || !activityId) return res.status(400).json({ ok: false, error: 'project id and activity id are required' });
 
