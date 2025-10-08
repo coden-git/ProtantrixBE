@@ -73,3 +73,16 @@ exports.getPresignedDownloadUrl = async (path, expiresSeconds = 1800) => {
 
 };
 
+
+exports.getProjectAccessList = (user) => {
+  const role = user?.role;
+  const isAdmin = role === 'admin';
+  const userProjects = Array.isArray(user?.projects) ? user.projects : [];
+  const uuids = isAdmin
+    ? [] // Admin treated specially by callers (no restriction if isAdmin)
+    : userProjects
+        .map(p => (p && typeof p === 'object' ? p.uuid : null))
+        .filter(Boolean);
+  return { uuids, isAdmin };
+};
+

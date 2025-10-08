@@ -151,10 +151,16 @@ async function updateUser(req, res) {
     if (!id) return res.status(400).json({ ok: false, error: 'Missing user id' });
 
     const update = {};
-    const { name, role, isActive } = req.body || {};
+    const { name, role, isActive, projects } = req.body || {};
     if (typeof name !== 'undefined') update.name = String(name).trim();
     if (typeof role !== 'undefined') update.role = role === 'admin' ? 'admin' : 'user';
     if (typeof isActive !== 'undefined') update.isActive = !!isActive;
+    if (Array.isArray(projects)) {
+      update.projects = projects.filter(p => p && p.uuid && p.name).map(p => ({
+        uuid: String(p.uuid),
+        name: String(p.name).trim(),
+      }));
+    }
 
     if (!Object.keys(update).length) {
       return res.status(400).json({ ok: false, error: 'No valid fields provided' });

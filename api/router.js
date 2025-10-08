@@ -11,6 +11,8 @@ const userController = require('./user/user.controller');
 const userValidator = require('./user/user.validator');
 const middlewares = require('../middlewares/middleware')
 const openapiBuilder = require('./openapi.builder');
+const alertController = require('./alerts/alert.controller');
+const { createActivityUnlockSchema, listAlertsQuerySchema, approveRejectParamsSchema, approveRejectQuerySchema } = require('./alerts/alert.validator');
 
 // POST /create-schema - generate activity JSON and store a new versioned schema
 router.get('/create-schema', [middlewares.adminAuth], schemaController.updateConfigWithActivity);
@@ -103,7 +105,7 @@ router.post('/projects/create', [middlewares.authRole('admin'), middlewares.body
 // GET /projects - paginated list of projects (minimal summaries)
 router.get('/projects/list', [middlewares.authRole(['admin', 'user'])], projectController.listProjects);
 // PUT /projects/:id - update project by UUID
-router.put('/projects/:id', [middlewares.authRole(['admin', 'user']), middlewares.paramsValidator(projectValidator.projectIdParamsSchema)], projectController.updateProject);
+router.put('/projects/:id', [middlewares.authRole(['admin']), middlewares.paramsValidator(projectValidator.projectIdParamsSchema)], projectController.updateProject);
 
 openapiBuilder.attachDoc('/projects/list', 'get', {
 	summary: 'List projects (paginated, excludes activities)',
@@ -398,3 +400,92 @@ openapiBuilder.attachDoc('/projects/create', 'post', {
 });
 
 module.exports = router;
+// ALERT ROUTES
+router.post('/alert/create/activity-unlock', [
+	middlewares.authRole('user'),
+	middlewares.bodyValidator(createActivityUnlockSchema)
+], alertController.createActivityUnlock);
+
+openapiBuilder.attachDoc('/alert/create/activity-unlock', 'post', {
+	summary: 'Create an activity unlock alert (user role)',
+	tags: ['alert'],
+	security: [{ BearerAuth: [] }],
+	requestBody: {
+		required: true,
+		content: {
+			'application/json': {
+				schema: {
+					type: 'object',
+					properties: {
+						activityId: { type: 'string' },
+						activityName: { type: 'string' },
+						projectId: { type: 'string' },
+						projectName: { type: 'string' },
+					},
+					required: ['activityId', 'activityName', 'projectId', 'projectName']
+				},
+				example: {
+					activityId: 'act-123',
+					activityName: 'Excavation',
+					projectId: 'proj-999',
+					projectName: 'Highway Extension'
+				}
+			}
+		}
+	},
+	responses: {
+		'201': { description: 'Alert created' },
+		'401': { description: 'Unauthorized' },
+		'422': { description: 'Validation error' },
+		'500': { description: 'Server error' }
+	}
+});
+
+// Approve / reject a single alert by uuid
+router.post('/alerts/approve-reject/:uuid', [
+	middlewares.authRole('admin'),
+	middlewares.paramsValidator(approveRejectParamsSchema),
+	middlewares.queryValidator(approveRejectQuerySchema)
+], alertController.approveRejectAlert);
+
+openapiBuilder.attachDoc('/alerts/approve-reject/{uuid}', 'post', {
+	summary: 'Approve or reject a single pending activity unlock alert',
+	tags: ['alert'],
+	security: [{ BearerAuth: [] }],
+	parameters: [
+		{ name: 'uuid', in: 'path', required: true, schema: { type: 'string' } },
+		{ name: 'status', in: 'query', required: true, schema: { type: 'string', enum: ['COMPLETED','REJECTED'] } }
+	],
+	responses: {
+		'200': { description: 'Alert updated' },
+		'401': { description: 'Unauthorized' },
+		'404': { description: 'Alert not found' },
+		'409': { description: 'Alert not in pending state' },
+		'422': { description: 'Validation error' },
+		'500': { description: 'Server error' }
+	}
+});
+
+// GET /alerts/list - paginated list (page size fixed at 100)
+router.get('/alerts/list', [
+	middlewares.authRole(['admin','user']),
+	middlewares.queryValidator(listAlertsQuerySchema)
+], alertController.listAlerts);
+
+openapiBuilder.attachDoc('/alerts/list', 'get', {
+	summary: 'Paginated list of alerts (page size 100)',
+	tags: ['alert'],
+	security: [{ BearerAuth: [] }],
+	parameters: [
+		{ name: 'page', in: 'query', required: false, schema: { type: 'integer', minimum: 1, default: 1 } },
+		{ name: 'type', in: 'query', required: false, schema: { type: 'string', enum: ['ACTIVITY_UNLOCK'] } },
+		{ name: 'status', in: 'query', required: false, schema: { type: 'string', enum: ['PENDING','COMPLETED','REJECTED'] } },
+		{ name: 'projectId', in: 'query', required: false, schema: { type: 'string' } }
+	],
+	responses: {
+		'200': { description: 'Alerts list returned' },
+		'401': { description: 'Unauthorized' },
+		'422': { description: 'Validation error' },
+		'500': { description: 'Server error' }
+	}
+});

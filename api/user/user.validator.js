@@ -30,6 +30,7 @@ const updateUserSchema = Joi.object({
   name: Joi.string().trim().optional(),
   role: Joi.string().valid('user', 'admin').optional(),
   isActive: Joi.boolean().optional(),
+  projects: Joi.array().items(projectRefSchema).optional(),
 });
 
 module.exports = { createAdminUserSchema, loginUserSchema, createUserSchema, updateUserSchema };

@@ -1,5 +1,7 @@
 const Project = require('./project.model');
 const JsonSchema = require('../config/json_schema.model');
+const { getProjectAccessList } = require('../../utils');
+const Alerts = require('../alerts/alerts.model');
 
 /**
  * Express handler to create a new Project.
@@ -62,13 +64,30 @@ async function listProjects(req, res) {
     try {
         const page = Math.max(1, parseInt(req.query.page, 10) || 1);
         let limit = Math.max(1, parseInt(req.query.limit, 10) || 20);
-        limit = Math.min(limit, 100);
+        limit = Math.min(limit, 1000);
 
         const skip = (page - 1) * limit;
+        // Determine visibility scope based on user role & assigned projects
+        // req.user is the decoded JWT payload; user object lives at req.user.user
+
+        let query = {};
+        const { uuids, isAdmin } = getProjectAccessList(req.user?.user);
+        console.log('listProjects access:', uuids, isAdmin, req.user);
+
+        if (!isAdmin) {
+            // For non-admin users restrict to assigned project UUIDs
+            query = { uuid: { $in: uuids } };
+            if (uuids.length === 0) {
+                // No accessible projects; short‑circuit with empty result set
+                return res.status(200).json({ ok: true, page, limit, total: 0, totalPages: 0, items: [] });
+            }
+        }
+
+        console.log('listProjects query:', query);
 
         const [items, total] = await Promise.all([
-            Project.find({}, { activities: 0 }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-            Project.countDocuments(),
+            Project.find(query, { activities: 0 }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+            Project.countDocuments(query),
         ]);
 
         const totalPages = Math.ceil(total / limit);
@@ -89,12 +108,19 @@ async function listProjects(req, res) {
 async function getProjectActivities(req, res) {
     try {
         const { id } = req.params;
+        // Access control: only admins or users with explicit project assignment can view
+        const { uuids, isAdmin } = getProjectAccessList(req.user?.user);
+
+        if (!isAdmin && (!uuids || !uuids.includes(id))) {
+            return res.status(403).json({ ok: false, error: 'Forbidden: no access to this project' });
+        }
+
         const project = await Project.findOne({ uuid: id }, { activities: 1, json_schema_version: 1 }).lean();
+
+        const alerts = await Alerts.find({ "project.projectId": id, "createdBy.userId": req.user?.user?._id, type:'ACTIVITY_UNLOCK' }).lean();
         if (!project) return res.status(404).json({ ok: false, error: 'Project not found' });
 
-        let isAdmin = false
-
-        return res.status(200).json({ ok: true, json_schema_version: project.json_schema_version, activities: formatPayload(project.activities, isAdmin) });
+        return res.status(200).json({ ok: true, json_schema_version: project.json_schema_version, activities: formatPayload(project.activities, isAdmin, alerts) });
     } catch (err) {
         // eslint-disable-next-line no-console
         console.error('getProjectActivities error:', err && err.stack ? err.stack : err);
@@ -102,7 +128,7 @@ async function getProjectActivities(req, res) {
     }
 }
 
-const formatPayload = (activities, isAdmin) => {
+const formatPayload = (activities, isAdmin, alerts) => {
     if (isAdmin) {
         return activities
     }
@@ -189,8 +215,13 @@ const formatPayload = (activities, isAdmin) => {
 
         }
         activities[i].isCompleted = checlistCompleted
+        const userRequestForOpeningActivity = alerts.find(a => a.activity?.activityId === activities[i].id)
+        
+        if(!activities[i].isCompleted && userRequestForOpeningActivity?.status === 'PENDING'){
+            activities[i].enableRequest = true
+        }
         if(i > 0){
-            activities[i].disabled =  !activities[i-1].isCompleted
+            activities[i].disabled =  !(activities[i-1].isCompleted || userRequestForOpeningActivity?.status === 'COMPLETED')
         }
         userActivities.push(activities[i])
     }
@@ -273,6 +304,12 @@ async function updateActivity(req, res) {
         console.log('Found project for updateActivity', projectId, activityId);
 
         if (!projectId || !activityId) return res.status(400).json({ ok: false, error: 'project id and activity id are required' });
+
+        // Access control: only admins or users with explicit project assignment can update
+        const { uuids, isAdmin } = getProjectAccessList(req.user?.user);
+        if (!isAdmin && (!uuids || !uuids.includes(projectId))) {
+            return res.status(403).json({ ok: false, error: 'Forbidden: no access to this project' });
+        }
 
         const project = await Project.findOne({ uuid: projectId, status: { $ne: 'DELETED' } });
         if (!project) return res.status(404).json({ ok: false, error: 'Project not found or deleted' });

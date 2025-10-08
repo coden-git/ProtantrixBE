@@ -82,14 +82,12 @@ exports.authRole = (required) => {
             if (!process.env.JWT) {
                 return res.status(500).json({ ok: false, error: 'JWT secret not configured' });
             }
-            console.log('AuthRole checking token:', token);
             let decoded;
             try {
                 decoded = jwt.verify(token, process.env.JWT.trim());
             } catch (err) {
                 return res.status(401).json({ ok: false, error: 'Invalid or expired token' });
             }
-            console.log('Verifying JWT token for roles:', decoded);
 
             if (!decoded || !decoded?.user?.role) {
                 return res.status(401).json({ ok: false, error: 'Token missing role' });
