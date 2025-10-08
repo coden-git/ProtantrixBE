@@ -12,7 +12,10 @@ const userValidator = require('./user/user.validator');
 const middlewares = require('../middlewares/middleware')
 const openapiBuilder = require('./openapi.builder');
 const alertController = require('./alerts/alert.controller');
-const { createActivityUnlockSchema, listAlertsQuerySchema, approveRejectParamsSchema, approveRejectQuerySchema } = require('./alerts/alert.validator');
+const { createActivityUnlockSchema, listAlertsQuerySchema, approveRejectParamsSchema, approveRejectQuerySchema, alertSeenParamsSchema } = require('./alerts/alert.validator');
+// Comments
+const commentsController = require('./comments/comments.controller');
+const { commentParamsSchema, commentBodySchema } = require('./comments/comments.validator');
 
 // POST /create-schema - generate activity JSON and store a new versioned schema
 router.get('/create-schema', [middlewares.adminAuth], schemaController.updateConfigWithActivity);
@@ -484,6 +487,95 @@ openapiBuilder.attachDoc('/alerts/list', 'get', {
 	],
 	responses: {
 		'200': { description: 'Alerts list returned' },
+		'401': { description: 'Unauthorized' },
+		'422': { description: 'Validation error' },
+		'500': { description: 'Server error' }
+	}
+});
+
+// Mark alert seen
+router.post('/alert/:projectId/activity/:activityId/seen', [
+	middlewares.authRole(['admin','user']),
+	middlewares.paramsValidator(alertSeenParamsSchema),
+], alertController.markAlertSeen);
+
+openapiBuilder.attachDoc('/alert/{projectId}/activity/{activityId}/seen', 'post', {
+	summary: 'Mark an alert as seen by the current user (adds userId to seenBy array)',
+	tags: ['alert'],
+	security: [{ BearerAuth: [] }],
+	parameters: [
+		{ name: 'alertId', in: 'path', required: true, schema: { type: 'string' } },
+	],
+	responses: {
+		'200': { description: 'Alert updated (seenBy contains current user)', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' }, alert: { type: 'object' } } } } } },
+		'401': { description: 'Unauthorized' },
+		'404': { description: 'Alert not found' },
+		'500': { description: 'Server error' }
+	}
+});
+
+// COMMENT ROUTE (note: path uses provided spelling '/commemt/')
+router.post('/comment/:projectId/activity/:activityId', [
+	middlewares.authRole(['admin','user']),
+	middlewares.paramsValidator(commentParamsSchema),
+	// Multer first so we can parse multipart fields
+	commentsController.singleUpload,
+	middlewares.parseMultipartPayload(),
+	middlewares.bodyValidator(commentBodySchema),
+	commentsController.createCommentWithFile
+]);
+
+openapiBuilder.attachDoc('/comment/{projectId}/activity/{activityId}', 'post', {
+	summary: 'Create a comment with a file for a project activity',
+	tags: ['comment'],
+	security: [{ BearerAuth: [] }],
+	parameters: [
+		{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+		{ name: 'activityId', in: 'path', required: true, schema: { type: 'string' } },
+	],
+	requestBody: {
+		required: true,
+		content: {
+			'multipart/form-data': {
+				schema: {
+					type: 'object',
+					properties: {
+						comment: { type: 'string' },
+						projectName: { type: 'string', description: 'Optional project name (will fallback if omitted)' },
+						activityName: { type: 'string', description: 'Optional activity name (will fallback if omitted)' },
+						payload: { type: 'string', description: 'JSON string duplicate containing { comment, projectName?, activityName? }' },
+						file: { type: 'string', format: 'binary' }
+					},
+						required: ['comment']
+				}
+			}
+		}
+	},
+	responses: {
+		'201': { description: 'Comment created (returns stored comment doc)' },
+			'400': { description: 'Bad request (invalid upload)' },
+		'401': { description: 'Unauthorized' },
+		'422': { description: 'Validation error' },
+		'500': { description: 'Server error' }
+	}
+});
+
+// GET list last 100 comments for project/activity
+router.get('/comment/:projectId/activity/:activityId/list', [
+	middlewares.authRole(['admin','user']),
+	middlewares.paramsValidator(commentParamsSchema),
+], commentsController.listComments);
+
+openapiBuilder.attachDoc('/comment/{projectId}/activity/{activityId}/list', 'get', {
+	summary: 'List recent (max 100) comments for a project activity (newest first)',
+	tags: ['comment'],
+	security: [{ BearerAuth: [] }],
+	parameters: [
+		{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+		{ name: 'activityId', in: 'path', required: true, schema: { type: 'string' } },
+	],
+	responses: {
+		'200': { description: 'Comments list returned', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' }, count: { type: 'integer' }, comments: { type: 'array', items: { type: 'object' } } } } } } },
 		'401': { description: 'Unauthorized' },
 		'422': { description: 'Validation error' },
 		'500': { description: 'Server error' }

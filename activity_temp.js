@@ -879,5 +879,3 @@ const actvityTrimmed = acitivity.map(act=>{
     return {...act, poValue:""}
 })
 
-
-console.log(actvityTrimmed)

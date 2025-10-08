@@ -26,6 +26,33 @@ exports.bodyValidator = (schema) => validateSchema(schema, 'body');
 exports.queryValidator = (schema) => validateSchema(schema, 'query');
 exports.paramsValidator = (schema) => validateSchema(schema, 'params');
 
+// Parse JSON string embedded in multipart field 'payload' (if present)
+// This should run AFTER multer processed fields (i.e. after singleUpload) and BEFORE bodyValidator
+exports.parseMultipartPayload = () => (req, res, next) => {
+    try {
+        console.log('parseMultipartPayload middleware', req.body.payload);
+        if (req.body && typeof req.body.payload === 'string') {
+            try {
+                const parsed = JSON.parse(req.body.payload);
+                // merge only plain object keys that are not already set to preserve explicit form fields precedence
+                if (parsed && typeof parsed === 'object') {
+                    Object.keys(parsed).forEach(k => {
+                        if (req.body[k] === undefined) {
+                            req.body[k] = parsed[k];
+                        }
+                    });
+                }
+            } catch (e) {
+                // Invalid JSON - ignore but record note
+                req._payloadParseError = 'Invalid payload JSON';
+            }
+        }
+    } catch (err) {
+        // swallow parse errors and continue
+    }
+    next();
+};
+
 // Admin auth middleware: checks authtoken against process.env.ADMIN_TOKEN
 function stripQuotes(str) {
     if (typeof str !== 'string') return str;

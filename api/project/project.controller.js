@@ -72,7 +72,6 @@ async function listProjects(req, res) {
 
         let query = {};
         const { uuids, isAdmin } = getProjectAccessList(req.user?.user);
-        console.log('listProjects access:', uuids, isAdmin, req.user);
 
         if (!isAdmin) {
             // For non-admin users restrict to assigned project UUIDs
@@ -83,7 +82,6 @@ async function listProjects(req, res) {
             }
         }
 
-        console.log('listProjects query:', query);
 
         const [items, total] = await Promise.all([
             Project.find(query, { activities: 0 }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
@@ -117,10 +115,14 @@ async function getProjectActivities(req, res) {
 
         const project = await Project.findOne({ uuid: id }, { activities: 1, json_schema_version: 1 }).lean();
 
-        const alerts = await Alerts.find({ "project.projectId": id, "createdBy.userId": req.user?.user?._id, type:'ACTIVITY_UNLOCK' }).lean();
+        const [alertsActivity, comments] = await Promise.all([
+                Alerts.find({ "project.projectId": id, "createdBy.userId": req.user?.user?._id, type:'ACTIVITY_UNLOCK' }).lean(),
+                Alerts.find({ "project.projectId": id, "seenBy": {$nin:[req.user?.user?._id]}, type:'NEW_COMMENT' }).lean()
+
+            ]);
         if (!project) return res.status(404).json({ ok: false, error: 'Project not found' });
 
-        return res.status(200).json({ ok: true, json_schema_version: project.json_schema_version, activities: formatPayload(project.activities, isAdmin, alerts) });
+        return res.status(200).json({ ok: true, json_schema_version: project.json_schema_version, activities: formatPayload(project.activities, isAdmin, alertsActivity, comments) });
     } catch (err) {
         // eslint-disable-next-line no-console
         console.error('getProjectActivities error:', err && err.stack ? err.stack : err);
@@ -128,9 +130,14 @@ async function getProjectActivities(req, res) {
     }
 }
 
-const formatPayload = (activities, isAdmin, alerts) => {
+const formatPayload = (activities, isAdmin, alerts, comments) => {
     if (isAdmin) {
-        return activities
+        for (let i = 0; i < activities.length; i++) {
+            const isNewComment = comments.find(c => c.activity?.activityId === activities[i].id)
+            if (isNewComment) {
+                activities[i].isNewComment = true
+            }
+        }
     }
     const userActivities = []
     for (let i = 0; i < activities.length; i++) {
@@ -216,7 +223,10 @@ const formatPayload = (activities, isAdmin, alerts) => {
         }
         activities[i].isCompleted = checlistCompleted
         const userRequestForOpeningActivity = alerts.find(a => a.activity?.activityId === activities[i].id)
-        
+        const isNewComment = comments.find(c => c.activity?.activityId === activities[i].id)
+        if (isNewComment) {
+            activities[i].isNewComment = true
+        }
         if(!activities[i].isCompleted && userRequestForOpeningActivity?.status === 'PENDING'){
             activities[i].enableRequest = true
         }

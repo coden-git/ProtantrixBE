@@ -111,5 +111,35 @@ async function approveRejectAlert(req, res) {
   }
 }
 
-module.exports = { createActivityUnlock, listAlerts, approveRejectAlert };
+
+// POST /alert/:alertId/seen
+// Auth: admin or user
+// Action: add current user's id to seenBy array if not already present
+async function markAlertSeen(req, res) {
+	try {
+		const { projectId, activityId } = req.params;
+		if (!projectId || !activityId) {
+			return res.status(400).json({ ok: false, error: 'projectId and activityId are required' });
+		}
+		if (!req.user || !req.user.user) {
+			return res.status(401).json({ ok: false, error: 'Unauthorized' });
+		}
+		const user = req.user.user;
+
+		const updated = await Alert.updateMany(
+			{ 'project.projectId': projectId, 'activity.activityId': activityId },
+			{ $addToSet: { seenBy: String(user._id) } },
+		);
+		if (!updated) {
+			return res.status(404).json({ ok: false, error: 'Alert not found' });
+		}
+		return res.status(200).json({ ok: true, alert: updated });
+	} catch (err) {
+		// eslint-disable-next-line no-console
+		console.error('Failed to mark alert seen', err);
+		return res.status(500).json({ ok: false, error: 'Server error marking alert seen' });
+	}
+}
+
+module.exports = { createActivityUnlock, listAlerts, approveRejectAlert, markAlertSeen };
 

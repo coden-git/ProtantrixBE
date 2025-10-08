@@ -26,10 +26,17 @@ const approveRejectQuerySchema = Joi.object({
 	status: Joi.string().trim().valid('COMPLETED','REJECTED').required(),
 }).required();
 
+// Params schema for marking an alert as seen
+const alertSeenParamsSchema = Joi.object({
+  projectId: Joi.string().trim().min(1).required(),
+  activityId: Joi.string().trim().min(1).required(),
+}).required();
+
 module.exports = {
 	createActivityUnlockSchema,
   listAlertsQuerySchema,
 	approveRejectParamsSchema,
 	approveRejectQuerySchema,
+	alertSeenParamsSchema,
 };
 
