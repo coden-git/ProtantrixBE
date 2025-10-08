@@ -339,6 +339,24 @@ openapiBuilder.attachDoc('/users', 'get', {
 	}
 });
 
+// DELETE /project/delete/:path - delete a file (URL-encoded path) from S3 under ENV prefix
+router.delete('/project/delete/:path', [middlewares.authRole(['admin','user'])], downloadController.deleteProjectFile);
+
+openapiBuilder.attachDoc('/project/delete/{path}', 'delete', {
+	summary: 'Delete a file from project storage (S3) under the ENV prefix',
+	tags: ['project'],
+	security: [{ BearerAuth: [] }],
+	parameters: [
+		{ name: 'path', in: 'path', required: true, schema: { type: 'string' }, description: 'URL-encoded relative path e.g. activities%2Fmyfile.jpg' }
+	],
+	responses: {
+		'200': { description: 'File deleted', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' }, path: { type: 'string' } } } } } },
+		'400': { description: 'Missing path' },
+		'401': { description: 'Unauthorized' },
+		'500': { description: 'Server error' }
+	}
+});
+
 // PATCH /user/{id} - partial update (admin only) name/role/isActive
 router.patch('/user/:id', [middlewares.authRole('admin'), middlewares.bodyValidator(userValidator.updateUserSchema)], userController.updateUser);
 

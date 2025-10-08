@@ -86,3 +86,26 @@ exports.getProjectAccessList = (user) => {
   return { uuids, isAdmin };
 };
 
+/**
+ * Delete a file from S3 under the current ENV prefix.
+ * Path should be relative to the ENV prefix (e.g. "activities/myfile.jpg").
+ * @param {string} path Relative key (without leading slash) inside the ENV namespace
+ * @returns {Promise<{ok: boolean, path: string}>}
+ */
+exports.deleteFile = async (path) => {
+  if (!path) throw new Error('path is required');
+  const AWS = require('aws-sdk');
+  const s3 = new AWS.S3();
+  const bucket = process.env.AWS_BUCKET_NAME;
+  if (!bucket) throw new Error('AWS_BUCKET_NAME env var not set');
+  const key = `${process.env.ENV}/${path}`;
+  try {
+    await s3.deleteObject({ Bucket: bucket, Key: key }).promise();
+    return { ok: true, path };
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('deleteFile error', err);
+    throw err;
+  }
+};
+

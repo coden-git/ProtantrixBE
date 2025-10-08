@@ -30,4 +30,23 @@ async function getPresignedDownload(req, res) {
   }
 }
 
-module.exports = { getPresignedDownload };
+/**
+ * DELETE /project/delete/:path
+ * Deletes a file from S3 under the ENV prefix. Path must be URL-encoded.
+ */
+async function deleteProjectFile(req, res) {
+  try {
+    let { path } = req.params;
+    if (!path || path === ':path') {
+      path = req.query.path;
+    }
+    if (!path) return res.status(400).json({ ok: false, error: 'path is required (url-encode slashes)' });
+    await utils.deleteFile(path);
+    return res.status(200).json({ ok: true, path });
+  } catch (err) {
+    console.error('deleteProjectFile error', err);
+    return res.status(500).json({ ok: false, error: err.message || String(err) });
+  }
+}
+
+module.exports = { getPresignedDownload, deleteProjectFile };
