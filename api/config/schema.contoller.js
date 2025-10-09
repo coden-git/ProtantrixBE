@@ -350,7 +350,7 @@ const cubeCastTable = [
     [
         {
             type:'label',
-            value: 'Mixing Ratio,'
+            value: 'Mixing Ratio'
         },
         
         {
