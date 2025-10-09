@@ -275,7 +275,7 @@ const formatPayload = (activities, isAdmin, alerts, comments) => {
 async function updateProject(req, res) {
     try {
         const { id } = req.params;
-        const { name, description, status } = req.body || {};
+        const { name, description, status, docs } = req.body || {};
 
         if (!id) {
             return res.status(400).json({ ok: false, error: 'Project ID (UUID) is required' });
@@ -297,6 +297,11 @@ async function updateProject(req, res) {
         }
         if (status !== undefined && ['READY', 'IN_PROGRESS', 'COMPLETED', 'DELETED'].includes(status)) {
             updates.status = status;
+        }
+        // Optional docs update: expect an array of strings
+        if (docs !== undefined) {
+            
+            updates.docs = docs;
         }
 
         // Update the project

@@ -25,7 +25,8 @@ const ProjectSchema = new Schema(
       default: 'READY',
     },
     docs: {
-      type: [String],
+      // allow any JSON structure (array, object, strings, etc.)
+      type: Schema.Types.Mixed,
       required: false,
       default: [],
     },
