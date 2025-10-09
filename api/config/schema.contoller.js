@@ -21,6 +21,22 @@ const masters = {
     internalPaint: [{ label: 'Apex Ultima', value: 'Apex Ultima', id:1 }, { label: 'Nerolac Excel Mica', value: 'Nerolac Excel Mica', id:2 }, { label: 'Asian Paint Royale Aspira', value: 'Asian Paint Royale Aspira', id:3 }],
     }
 
+const mimeTypes =  [
+  'application/pdf',
+  // Word
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  // Excel
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  // AutoCAD DWG (common variants)
+  'application/dwg',
+  'application/acad',
+  'application/x-acad',
+  'application/x-dwg',
+  'image/*'
+];
+
 
 const measurements = {
     LOT: {
@@ -299,7 +315,7 @@ const leakTestTable = [
         {
             type:'image',
             value: '',
-            mimeTypes:['image/*']
+            mimeTypes: mimeTypes
         },
     ],
 ];
@@ -341,7 +357,7 @@ const leakTestTableAC = [
         {
             type:'image',
             value: '',
-            mimeTypes:['image/*']
+            mimeTypes:mimeTypes
         },
     ],
 ];
@@ -377,7 +393,7 @@ const cubeCastTable = [
         {
             type: 'image',
             value: '',
-            mimeTypes:['image/*']
+            mimeTypes:mimeTypes
         }
     ]
 ];
@@ -419,7 +435,7 @@ const pressureTable = [
         {
             type: 'image',
             value: '',
-            mimeTypes:['image/*']
+            mimeTypes:mimeTypes
         }
     ]
 ];
@@ -459,7 +475,7 @@ const checkList = {
         name: '$name',
         "type": "FileUpload",
         "isRequired": true,
-        mimeTypes: ['application/pdf', 'image/*'],
+        mimeTypes: mimeTypes,
         value: '',
     }
 }
