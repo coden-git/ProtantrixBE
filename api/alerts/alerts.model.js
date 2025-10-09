@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const { Schema } = mongoose;
 
 // Potential enum for alert types; adjust as domain evolves
-const ALERT_TYPES = ['ACTIVITY_UNLOCK', 'NEW_COMMENT'];
+const ALERT_TYPES = ['ACTIVITY_UNLOCK', 'NEW_COMMENT', 'PO_VALUE_ERROR'];
 const ALERT_STATUS = ['PENDING', 'COMPLETED', 'REJECTED'];
 
 // Embedded subdocuments (no separate _id) to mirror lightweight reference style used elsewhere

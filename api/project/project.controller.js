@@ -116,10 +116,10 @@ async function getProjectActivities(req, res) {
         const project = await Project.findOne({ uuid: id }, { activities: 1, json_schema_version: 1 }).lean();
 
         const [alertsActivity, comments] = await Promise.all([
-                Alerts.find({ "project.projectId": id, "createdBy.userId": req.user?.user?._id, type:'ACTIVITY_UNLOCK' }).lean(),
-                Alerts.find({ "project.projectId": id, "seenBy": {$nin:[req.user?.user?._id]}, type:'NEW_COMMENT' }).lean()
+            Alerts.find({ "project.projectId": id, "createdBy.userId": req.user?.user?._id, type: 'ACTIVITY_UNLOCK' }).lean(),
+            Alerts.find({ "project.projectId": id, "seenBy": { $nin: [req.user?.user?._id] }, type: 'NEW_COMMENT' }).lean()
 
-            ]);
+        ]);
         if (!project) return res.status(404).json({ ok: false, error: 'Project not found' });
 
         return res.status(200).json({ ok: true, json_schema_version: project.json_schema_version, activities: formatPayload(project.activities, isAdmin, alertsActivity, comments) });
@@ -131,14 +131,7 @@ async function getProjectActivities(req, res) {
 }
 
 const formatPayload = (activities, isAdmin, alerts, comments) => {
-    if (isAdmin) {
-        for (let i = 0; i < activities.length; i++) {
-            const isNewComment = comments.find(c => c.activity?.activityId === activities[i].id)
-            if (isNewComment) {
-                activities[i].isNewComment = true
-            }
-        }
-    }
+
     const userActivities = []
     for (let i = 0; i < activities.length; i++) {
         const checkLists = activities[i].checkLists
@@ -149,12 +142,18 @@ const formatPayload = (activities, isAdmin, alerts, comments) => {
                 const isValue = !!checkList?.value
                 if (isValue) {
                     checkList.disabled = true
+                } else {
+                    checkList.disabled = false
                 }
 
                 if (checkList.isRequired) {
                     if (!isValue) {
                         checlistCompleted = false
                     }
+                }
+
+                if (isAdmin) {
+                    checkList.disabled = false
                 }
             }
 
@@ -162,11 +161,17 @@ const formatPayload = (activities, isAdmin, alerts, comments) => {
                 const isValue = !!checkList.value?.to && !!checkList.value.from
                 if (isValue) {
                     checkList.disabled = true
+                } else {
+                    checkList.disabled = false
                 }
                 if (checkList.isRequired) {
                     if (!isValue) {
                         checlistCompleted = false
                     }
+                }
+
+                if (isAdmin) {
+                    checkList.disabled = false
                 }
             }
 
@@ -180,11 +185,16 @@ const formatPayload = (activities, isAdmin, alerts, comments) => {
                             const isValue = !!row?.value
                             if (isValue) {
                                 row.disabled = true
+                            } else {
+                                row.disabled = false
                             }
                             if (checkList.isRequired) {
                                 if (!isValue) {
                                     checlistCompleted = false
                                 }
+                            }
+                            if (isAdmin) {
+                                row.disabled = false
                             }
                         }
                     }
@@ -200,8 +210,12 @@ const formatPayload = (activities, isAdmin, alerts, comments) => {
                 measurementCompleted = false
             }
 
-            if(measurement.value){
+            if (measurement.value) {
                 measurement.disabled = true
+            }
+
+            if (isAdmin) {
+                measurement.disabled = false
             }
         }
         if (measurement?.type?.toLowerCase() === 'table') {
@@ -214,8 +228,13 @@ const formatPayload = (activities, isAdmin, alerts, comments) => {
                         const isValue = !!row?.value
                         if (isValue) {
                             row.disabled = true
+                        } else {
+                            row.disabled = false
                         }
-                        
+
+                        if (isAdmin) {
+                            row.disabled = false
+                        }
                     }
                 }
             }
@@ -226,12 +245,21 @@ const formatPayload = (activities, isAdmin, alerts, comments) => {
         const isNewComment = comments.find(c => c.activity?.activityId === activities[i].id)
         if (isNewComment) {
             activities[i].isNewComment = true
+        } else {
+            activities[i].isNewComment = false
         }
-        if(!activities[i].isCompleted && userRequestForOpeningActivity?.status === 'PENDING'){
+        if (!activities[i].isCompleted && userRequestForOpeningActivity?.status === 'PENDING') {
             activities[i].enableRequest = true
+        } else {
+            activities[i].enableRequest = false
         }
-        if(i > 0){
-            activities[i].disabled =  !(activities[i-1].isCompleted || userRequestForOpeningActivity?.status === 'COMPLETED')
+        if (i > 0) {
+            activities[i].disabled = !(activities[i - 1].isCompleted || userRequestForOpeningActivity?.status === 'COMPLETED')
+        }
+
+        if (isAdmin) {
+            activities[i].disabled = false
+            activities[i].enableRequest = false
         }
         userActivities.push(activities[i])
     }
@@ -311,7 +339,6 @@ async function updateProject(req, res) {
 async function updateActivity(req, res) {
     try {
         const { id: projectId, activityId } = req.params;
-        console.log('Found project for updateActivity', projectId, activityId);
 
         if (!projectId || !activityId) return res.status(400).json({ ok: false, error: 'project id and activity id are required' });
 
@@ -339,6 +366,7 @@ async function updateActivity(req, res) {
 
         // replace the activity with the request body
         const newActivity = req.body;
+        validateActivity(newActivity.measurement, newActivity.poTrigger, newActivity.poValue, newActivity.name, project.name, req.user?.user, project.uuid, activityId); // throws if invalid
         project.activities[idx] = newActivity;
 
         await project.save();
@@ -348,6 +376,75 @@ async function updateActivity(req, res) {
         // eslint-disable-next-line no-console
         console.error('updateActivity error:', err && err.stack ? err.stack : err);
         return res.status(500).json({ ok: false, error: err.message || String(err) });
+    }
+}
+
+const validateActivity = (measurement, poTrigger, poValue, activityName, projectName, user, projectId, activityId) => {
+    const promises = []
+    if (!poTrigger) {
+        return null
+    }
+
+    if (poTrigger === "id") {
+        const poIdValues = poValue.reduce((acc, curr) => {
+            if (curr.label) {
+                if(acc[curr.label]) {
+                    acc[curr.label] = acc[curr.label] + curr.value;
+                } else {
+                    acc[curr.label] = curr.value;
+                }
+            }
+            return acc;
+        }, {})
+        console.log('poIdValues', poIdValues)
+        const measurementIdValues = {}
+        for (let i = 1; i < measurement.data.length; i++) {
+            const row = measurement.data[i]
+            if(measurementIdValues[row[0].value]){
+                measurementIdValues[row[0].value] = measurementIdValues[row[0].value] + parseInt(row[row.length - 1].value)
+            } else {
+                measurementIdValues[row[0].value] = parseInt(row[row.length - 1].value)
+            }
+        }
+
+
+        for (const key in measurementIdValues) {
+            const poKeyValue = poIdValues[key] || 0
+            if (poKeyValue < measurementIdValues[key]) {
+                console.log('Invalid poValue for id', key, poKeyValue, measurementIdValues[key])
+                promises.push(createAlert(projectId, projectName, activityId, activityName, user, key))
+            }
+        }
+    }
+
+    if( poTrigger === "value") {
+        const poValueNumber = poValue[0]?.value || 0
+        let measurementValue = 0
+        for (let i = 1; i < measurement.data.length; i++) {
+            const row = measurement.data[i]
+            measurementValue = measurementValue + parseInt(row[row.length - 1].value)
+        }
+        if (poValueNumber < measurementValue) {
+            console.log('Invalid poValue for value', poValueNumber, measurementValue, activityName)
+            promises.push(createAlert(projectId, projectName, activityId, activityName, user))
+        }
+    }
+}
+
+const createAlert = async (projectId, projectName, activityId, activityName, user, poKey) => {
+    const existingAlert = await Alerts.findOne({ "project.projectId": projectId, "activity.activityId": activityId, type: 'PO_VALUE_ERROR', status: 'PENDING' }).lean()
+    if (!existingAlert) {
+        await Alerts.create({
+            type: 'PO_VALUE_ERROR',
+            createdBy: {
+                userId: user?._id?.toString?.() || 'unknown',
+                name: user?.name || 'Unknown'
+            },
+            status: 'PENDING',
+            project: { projectId: projectName, projectName: projectName || 'Unknown Project' },
+            activity: { activityId: activityName, activityName: activityName || 'Unknown Activity' },
+            alertText: `Measurement value ${poKey || ''} for ${activityName} in ${projectName} is more than PO value.`,
+        })
     }
 }
 
